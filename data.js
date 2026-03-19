@@ -474,6 +474,41 @@ window.DB = (() => {
     downloadJSON({ bookmarks: bms }, `selected-bookmarks-${new Date().toISOString().slice(0,10)}.json`);
   }
 
+  function parseXLSX(arrayBuffer) {
+    const wb = XLSX.read(arrayBuffer, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    const categoryNames = new Set();
+    const bookmarks = rows
+      .filter(r => r.URL && String(r.URL).startsWith('http'))
+      .map(r => {
+        const catName = String(r.Category || '').trim() || 'Imported';
+        categoryNames.add(catName);
+        return {
+          title:        String(r.Title || r.URL).trim(),
+          url:          String(r.URL).trim(),
+          categoryName: catName,
+          tags:         r.Tags ? String(r.Tags).split(',').map(t => t.trim()).filter(Boolean) : [],
+          notes:        String(r.Notes || '').trim(),
+          starred:      String(r.Starred).toLowerCase() === 'yes',
+        };
+      });
+    return { bookmarks, categoryNames: [...categoryNames] };
+  }
+
+  function importFromXLSX(parsed, fallbackCatId) {
+    const catByName = Object.fromEntries(data.categories.map(c => [c.name.toLowerCase(), c.id]));
+    let count = 0;
+    for (const bm of parsed.bookmarks) {
+      const catId = catByName[bm.categoryName.toLowerCase()] || fallbackCatId;
+      if (!catId) continue;
+      addBookmark({ title: bm.title, url: bm.url, categoryId: catId,
+                    tags: bm.tags, notes: bm.notes, starred: bm.starred });
+      count++;
+    }
+    return count;
+  }
+
   function bmsToXLSXRows(bms) {
     const catMap = Object.fromEntries(data.categories.map(c => [c.id, c.name]));
     const tabMap = Object.fromEntries(data.tabs.map(t => [t.id, t.name]));
@@ -549,7 +584,8 @@ window.DB = (() => {
     // Tools
     findDuplicates, findDeadLinks, findRarelyVisited,
     // Import / Export
-    parseNetscapeHTML, importFromNetscape, exportJSON, exportTabJSON, exportSelected, exportXLSX, exportTabXLSX,
+    parseNetscapeHTML, importFromNetscape, parseXLSX, importFromXLSX,
+    exportJSON, exportTabJSON, exportSelected, exportXLSX, exportTabXLSX,
     // Settings
     getColumns, setColumns,
   };

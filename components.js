@@ -976,7 +976,9 @@ window.Components = (() => {
   function ImportModal() {
     const overlay = document.getElementById('modal-overlay');
     const modal = el('div', 'modal');
-    let parsedFolders = null;
+    let parsedFolders = null;   // HTML import
+    let parsedXLSX    = null;   // XLSX import
+    let importMode    = null;   // 'html' | 'xlsx'
 
     const allCats = DB.getAllCategories();
 
@@ -984,13 +986,13 @@ window.Components = (() => {
       <div class="modal-header"><span class="modal-title">Import Bookmarks</span><button class="modal-close" id="import-close"><i data-lucide="x"></i></button></div>
       <div class="import-drop-zone" id="import-drop">
         <div class="drop-icon">📂</div>
-        <div>Drop a Chrome/Firefox HTML export here</div>
+        <div>Drop a Chrome/Firefox HTML export or XLSX file here</div>
         <div style="margin-top:6px;font-size:12px;color:var(--text-muted)">or <label for="import-file" style="color:var(--accent);cursor:pointer">browse files</label></div>
-        <input type="file" id="import-file" accept=".html,.htm" style="display:none">
+        <input type="file" id="import-file" accept=".html,.htm,.xlsx" style="display:none">
       </div>
       <div id="import-preview" style="display:none"></div>
       <div class="form-group" id="import-cat-row" style="display:none">
-        <label class="form-label">Import to Category</label>
+        <label class="form-label" id="import-cat-label">Fallback Category <span style="font-weight:400;color:var(--text-muted)">(used when category not found)</span></label>
         <select class="form-select" id="import-cat">
           ${allCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
         </select>
@@ -1008,19 +1010,46 @@ window.Components = (() => {
     modal.querySelector('#import-close').onclick = close;
     modal.querySelector('#import-cancel').onclick = close;
 
+    function showPreview(html) {
+      const preview = modal.querySelector('#import-preview');
+      preview.style.display = 'block';
+      preview.innerHTML = `<div class="import-preview">${html}</div>`;
+      modal.querySelector('#import-cat-row').style.display = 'block';
+      modal.querySelector('#import-confirm').style.display = 'inline-flex';
+    }
+
     function handleFile(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        parsedFolders = DB.parseNetscapeHTML(e.target.result);
-        const total = Object.values(parsedFolders).reduce((s, items) => s + items.length, 0);
-        const folderCount = Object.keys(parsedFolders).length;
-        const preview = modal.querySelector('#import-preview');
-        preview.style.display = 'block';
-        preview.innerHTML = `<div class="import-preview">✅ Found <strong>${total} bookmarks</strong> in <strong>${folderCount} folder(s)</strong>: ${Object.keys(parsedFolders).join(', ')}</div>`;
-        modal.querySelector('#import-cat-row').style.display = 'block';
-        modal.querySelector('#import-confirm').style.display = 'inline-flex';
-      };
-      reader.readAsText(file);
+      const isXLSX = file.name.toLowerCase().endsWith('.xlsx');
+      if (isXLSX) {
+        importMode = 'xlsx';
+        modal.querySelector('#import-cat-label').innerHTML =
+          'Fallback Category <span style="font-weight:400;color:var(--text-muted)">(used when category not matched)</span>';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          parsedXLSX = DB.parseXLSX(e.target.result);
+          const { bookmarks, categoryNames } = parsedXLSX;
+          const matched = categoryNames.filter(n =>
+            DB.getAllCategories().some(c => c.name.toLowerCase() === n.toLowerCase())
+          );
+          const unmatched = categoryNames.filter(n => !matched.includes(n));
+          let info = `✅ Found <strong>${bookmarks.length} rows</strong> across <strong>${categoryNames.length} category column(s)</strong>`;
+          if (matched.length)   info += `<br><span style="color:var(--text-muted)">Matched: ${matched.join(', ')}</span>`;
+          if (unmatched.length) info += `<br><span style="color:var(--text-muted)">Will use fallback: ${unmatched.join(', ')}</span>`;
+          showPreview(info);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        importMode = 'html';
+        modal.querySelector('#import-cat-label').innerHTML = 'Import to Category';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          parsedFolders = DB.parseNetscapeHTML(e.target.result);
+          const total = Object.values(parsedFolders).reduce((s, items) => s + items.length, 0);
+          const folderCount = Object.keys(parsedFolders).length;
+          showPreview(`✅ Found <strong>${total} bookmarks</strong> in <strong>${folderCount} folder(s)</strong>: ${Object.keys(parsedFolders).join(', ')}`);
+        };
+        reader.readAsText(file);
+      }
     }
 
     modal.querySelector('#import-file').onchange = (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); };
@@ -1032,9 +1061,13 @@ window.Components = (() => {
     dropZone.ondrop = (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
 
     modal.querySelector('#import-confirm').onclick = () => {
-      if (!parsedFolders) return;
       const catId = modal.querySelector('#import-cat').value;
-      const count = DB.importFromNetscape(parsedFolders, catId);
+      let count = 0;
+      if (importMode === 'xlsx' && parsedXLSX) {
+        count = DB.importFromXLSX(parsedXLSX, catId);
+      } else if (importMode === 'html' && parsedFolders) {
+        count = DB.importFromNetscape(parsedFolders, catId);
+      }
       DB.rebuildFuse();
       App.toast(`Imported ${count} bookmarks`, 'success');
       close();
