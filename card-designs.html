@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Card Designs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07090f;
+      color: #e2e8f0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 40px 24px 80px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 13px;
+      margin-bottom: 48px;
+    }
+
+    .section {
+      margin-bottom: 64px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .section-desc {
+      font-size: 13px;
+      color: #475569;
+      margin-bottom: 24px;
+    }
+
+    .cards-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    /* ─────────────────────────────────────────
+       DESIGN A — Current (reference)
+    ───────────────────────────────────────── */
+    .card-a {
+      width: 260px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top: 2px solid var(--cc, #6366f1);
+      border-radius: 10px;
+      padding: 12px 12px 10px;
+      cursor: pointer;
+    }
+    .card-a:hover { background: rgba(255,255,255,0.07); }
+    .card-a .ch { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .card-a .ch .fav { width:16px; height:16px; border-radius:3px; background:#1e293b; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; }
+    .card-a .ch .ttl { font-size:13px; font-weight:500; color:#e2e8f0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .card-a .ch .acts { display:flex; gap:4px; }
+    .card-a .ch .acts button { width:22px; height:22px; background:none; border:none; color:#64748b; cursor:pointer; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:13px; }
+    .card-a .ch .acts button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+    .card-a .desc { font-size:12px; color:#94a3b8; line-height:1.45; margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-a .tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }
+    .card-a .tags span { font-size:11px; background:rgba(99,102,241,0.15); color:#818cf8; border-radius:4px; padding:1px 6px; }
+    .card-a .meta { display:flex; justify-content:space-between; font-size:11px; color:#475569; font-family:'DM Mono',monospace; }
+
+    /* ─────────────────────────────────────────
+       DESIGN B — Compact row
+       Горизонтальная компактная строка.
+       Фавикон + домен слева, теги и иконки справа.
+       Хорошо для плотных коллекций.
+    ───────────────────────────────────────── */
+    .card-b {
+      width: 340px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+    .card-b:hover { background: rgba(255,255,255,0.06); }
+    .card-b .fav-b { width:28px; height:28px; border-radius:6px; background:#1e293b; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; border:1px solid rgba(255,255,255,0.06); }
+    .card-b .body-b { flex:1; min-width:0; }
+    .card-b .ttl-b { font-size:13px; font-weight:500; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-b .row2 { display:flex; align-items:center; gap:6px; margin-top:2px; }
+    .card-b .dom-b { font-size:11px; color:#475569; font-family:'DM Mono',monospace; }
+    .card-b .tag-b { font-size:10px; background:rgba(255,255,255,0.06); color:#64748b; border-radius:3px; padding:1px 5px; }
+    .card-b .acts-b { display:flex; gap:2px; flex-shrink:0; }
+    .card-b .acts-b button { width:26px; height:26px; background:none; border:none; color:#475569; cursor:pointer; border-radius:5px; font-size:13px; display:flex; align-items:center; justify-content:center; }
+    .card-b .acts-b button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─────────────────────────────────────────
+       DESIGN C — Media card
+       Большой акцентный блок с цветной
+       «обложкой» вверху (цвет категории),
+       фавикон поверх обложки.
+       Для визуально насыщенных коллекций.
+    ───────────────────────────────────────── */
+    .card-c {
+      width: 220px;
+      background: #0f1623;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card-c:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .card-c .cover { height: 64px; background: var(--cc, #6366f1); position:relative; display:flex; align-items:flex-end; padding:10px 12px; }
+    .card-c .cover::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%); }
+    .card-c .cover .fav-c { width:28px; height:28px; border-radius:7px; background:rgba(0,0,0,0.35); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:13px; border:1px solid rgba(255,255,255,0.15); }
+    .card-c .body-c { padding:10px 12px 10px; }
+    .card-c .ttl-c { font-size:13px; font-weight:500; color:#f1f5f9; margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4; }
+    .card-c .desc-c { font-size:11px; color:#64748b; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:8px; }
+    .card-c .footer-c { display:flex; justify-content:space-between; align-items:center; }
+    .card-c .dom-c { font-size:10px; color:#475569; font-family:'DM Mono',monospace; }
+    .card-c .acts-c { display:flex; gap:2px; }
+    .card-c .acts-c button { width:22px; height:22px; background:none; border:none; color:#475569; cursor:pointer; border-radius:4px; font-size:11px; display:flex; align-items:center; justify-content:center; }
+    .card-c .acts-c button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─────────────────────────────────────────
+       DESIGN D — Glassmorphism pill
+       Размытый фон, цвет категории как
+       тонкий градиент. Нет чёткой рамки —
+       карточка «плавает» на фоне.
+    ───────────────────────────────────────── */
+    .card-d {
+      width: 260px;
+      background: rgba(255,255,255,0.045);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px;
+      padding: 14px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.15s;
+    }
+    .card-d::before {
+      content:'';
+      position:absolute;
+      top:-30px; right:-30px;
+      width:100px; height:100px;
+      border-radius:50%;
+      background: var(--cc, #6366f1);
+      opacity: 0.12;
+      filter: blur(30px);
+      pointer-events:none;
+    }
+    .card-d:hover { background: rgba(255,255,255,0.07); }
+    .card-d .top-d { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; }
+    .card-d .fav-d { width:36px; height:36px; border-radius:9px; background:rgba(255,255,255,0.06); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; border:1px solid rgba(255,255,255,0.08); }
+    .card-d .info-d { flex:1; min-width:0; }
+    .card-d .ttl-d { font-size:13px; font-weight:500; color:#f1f5f9; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-d .dom-d { font-size:11px; color:#475569; font-family:'DM Mono',monospace; }
+    .card-d .desc-d { font-size:12px; color:#94a3b8; line-height:1.45; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-d .bot-d { display:flex; align-items:center; justify-content:space-between; }
+    .card-d .tags-d { display:flex; gap:4px; }
+    .card-d .tags-d span { font-size:10px; background:rgba(255,255,255,0.06); color:#64748b; border-radius:20px; padding:2px 7px; }
+    .card-d .acts-d { display:flex; gap:2px; }
+    .card-d .acts-d button { width:26px; height:26px; background:none; border:none; color:#475569; cursor:pointer; border-radius:6px; font-size:12px; display:flex; align-items:center; justify-content:center; }
+    .card-d .acts-d button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─────────────────────────────────────────
+       DESIGN E — Left accent stripe
+       Тонкая вертикальная полоска цвета
+       категории слева. Минималистичная,
+       не перегружает Dashboard.
+    ───────────────────────────────────────── */
+    .card-e {
+      width: 260px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-left: 3px solid var(--cc, #6366f1);
+      border-radius: 0 10px 10px 0;
+      padding: 11px 12px;
+      cursor: pointer;
+      transition: background 0.15s, border-left-color 0.15s;
+    }
+    .card-e:hover { background: rgba(255,255,255,0.06); }
+    .card-e .top-e { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+    .card-e .fav-e { width:18px; height:18px; border-radius:4px; background:#1a2335; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+    .card-e .ttl-e { font-size:13px; font-weight:500; color:#e2e8f0; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-e .star-e { color:#f59e0b; font-size:12px; flex-shrink:0; }
+    .card-e .desc-e { font-size:12px; color:#64748b; line-height:1.4; margin-bottom:7px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-e .bot-e { display:flex; align-items:center; justify-content:space-between; }
+    .card-e .meta-e { font-size:11px; color:#334155; font-family:'DM Mono',monospace; }
+    .card-e .tags-e { display:flex; gap:3px; }
+    .card-e .tags-e span { font-size:10px; color:#4f6080; border:1px solid rgba(255,255,255,0.07); border-radius:3px; padding:1px 5px; }
+
+    /* ─────────────────────────────────────────
+       DESIGN F — Notion-style flat
+       Максимально плоский и простой.
+       Эмодзи или первая буква как аватар.
+       Вдохновлён Linear / Notion.
+    ───────────────────────────────────────── */
+    .card-f {
+      width: 260px;
+      background: transparent;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .card-f:hover { background: rgba(255,255,255,0.05); }
+    .card-f .row1-f { display:flex; align-items:center; gap:9px; }
+    .card-f .avatar-f { width:32px; height:32px; border-radius:7px; background: var(--cc, #6366f1); opacity:0.85; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:15px; }
+    .card-f .mid-f { flex:1; min-width:0; }
+    .card-f .ttl-f { font-size:13px; font-weight:500; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-f .sub-f { font-size:11px; color:#475569; font-family:'DM Mono',monospace; margin-top:1px; }
+    .card-f .acts-f { display:flex; gap:2px; opacity:0; transition:opacity 0.12s; }
+    .card-f:hover .acts-f { opacity:1; }
+    .card-f .acts-f button { width:24px; height:24px; background:none; border:none; color:#64748b; cursor:pointer; border-radius:5px; font-size:11px; display:flex; align-items:center; justify-content:center; }
+    .card-f .acts-f button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+    .card-f .tags-f { display:flex; gap:4px; margin-top:6px; padding-left:41px; }
+    .card-f .tags-f span { font-size:10px; color:#475569; background:rgba(255,255,255,0.05); border-radius:20px; padding:1px 6px; }
+
+    /* ─────────────────────────────────────────
+       Shared helpers
+    ───────────────────────────────────────── */
+    .ico { display:inline-flex; align-items:center; justify-content:center; font-style:normal; }
+    .star { color:#f59e0b; }
+
+    /* comparison grid */
+    .compare { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:24px; margin-top:32px; }
+    .compare-item { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:20px; }
+    .compare-item h3 { font-size:13px; font-weight:600; color:#94a3b8; margin-bottom:4px; }
+    .compare-item p { font-size:12px; color:#475569; line-height:1.5; margin-bottom:12px; }
+    .badge-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; }
+    .badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:500; }
+    .badge.pro { background:rgba(16,185,129,0.15); color:#34d399; }
+    .badge.con { background:rgba(239,68,68,0.12); color:#f87171; }
+    .badge.neutral { background:rgba(100,116,139,0.15); color:#94a3b8; }
+  </style>
+</head>
+<body>
+
+  <h1>Bookmark Card — Design Proposals</h1>
+  <p class="subtitle">6 вариантов дизайна карточек для Dashboard. Текущий дизайн помечен как Design A (Reference).</p>
+
+  <!-- ── A: Current ─────────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design A</div>
+    <div class="section-title">Current (Reference)</div>
+    <div class="section-desc">Текущий дизайн. Glassmorphism, цветная полоска сверху, описание + теги + мета.</div>
+    <div class="cards-row">
+      <div class="card-a" style="--cc:#6366f1">
+        <div class="ch">
+          <div class="fav">🔖</div>
+          <div class="ttl">Linear — Project Management</div>
+          <div class="acts">
+            <button title="Open">↗</button>
+            <button title="Edit">✎</button>
+            <button title="More">⋯</button>
+          </div>
+        </div>
+        <div class="desc">The issue tracker built for modern software teams. Beautiful, fast, and elegant.</div>
+        <div class="tags"><span>design</span><span>tools</span><span>productivity</span></div>
+        <div class="meta"><span>linear.app</span><span>👁 12</span></div>
+      </div>
+      <div class="card-a" style="--cc:#8b5cf6">
+        <div class="ch">
+          <div class="fav">⭐</div>
+          <div class="ttl">Figma — Design Tool</div>
+          <div class="acts">
+            <button>↗</button><button>✎</button><button>⋯</button>
+          </div>
+        </div>
+        <div class="desc">Collaborative design tool for teams. Build wireframes, prototypes and design systems.</div>
+        <div class="tags"><span>design</span><span>ui</span></div>
+        <div class="meta"><span>figma.com</span><span>👁 34</span></div>
+      </div>
+      <div class="card-a" style="--cc:#10b981">
+        <div class="ch">
+          <div class="fav">📦</div>
+          <div class="ttl">Vercel</div>
+          <div class="acts">
+            <button>↗</button><button>✎</button><button>⋯</button>
+          </div>
+        </div>
+        <div class="meta"><span>vercel.com</span><span>👁 5</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── B: Compact row ────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design B</div>
+    <div class="section-title">Compact Row</div>
+    <div class="section-desc">Горизонтальная строка. Больше карточек в колонке, минимум визуального шума. Идеально для больших коллекций.</div>
+    <div class="cards-row" style="flex-direction:column; align-items:flex-start;">
+      <div class="card-b">
+        <div class="fav-b">🔖</div>
+        <div class="body-b">
+          <div class="ttl-b">Linear — Project Management</div>
+          <div class="row2">
+            <span class="dom-b">linear.app</span>
+            <span class="tag-b">design</span>
+            <span class="tag-b">tools</span>
+          </div>
+        </div>
+        <div class="acts-b">
+          <button>↗</button><button>✎</button><button>⋯</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="fav-b">⭐</div>
+        <div class="body-b">
+          <div class="ttl-b">Figma — Design Tool ★</div>
+          <div class="row2">
+            <span class="dom-b">figma.com</span>
+            <span class="tag-b">ui</span>
+          </div>
+        </div>
+        <div class="acts-b">
+          <button>↗</button><button>✎</button><button>⋯</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div class="fav-b">📦</div>
+        <div class="body-b">
+          <div class="ttl-b">Vercel</div>
+          <div class="row2">
+            <span class="dom-b">vercel.com</span>
+          </div>
+        </div>
+        <div class="acts-b">
+          <button>↗</button><button>✎</button><button>⋯</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── C: Media card ────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design C</div>
+    <div class="section-title">Media Card</div>
+    <div class="section-desc">Цветная «обложка» сверху с фавиконом поверх неё. Визуально богатый, подчёркивает цвет категории. Для Dashboard с небольшим числом карточек.</div>
+    <div class="cards-row">
+      <div class="card-c" style="--cc:#6366f1">
+        <div class="cover"><div class="fav-c">🔖</div></div>
+        <div class="body-c">
+          <div class="ttl-c">Linear — Project Management</div>
+          <div class="desc-c">The issue tracker built for modern software teams. Beautiful and fast.</div>
+          <div class="footer-c">
+            <span class="dom-c">linear.app</span>
+            <div class="acts-c"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-c" style="--cc:#ec4899">
+        <div class="cover"><div class="fav-c">⭐</div></div>
+        <div class="body-c">
+          <div class="ttl-c">Figma</div>
+          <div class="desc-c">Collaborative interface design tool.</div>
+          <div class="footer-c">
+            <span class="dom-c">figma.com</span>
+            <div class="acts-c"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-c" style="--cc:#10b981">
+        <div class="cover"><div class="fav-c">📦</div></div>
+        <div class="body-c">
+          <div class="ttl-c">Vercel</div>
+          <div class="footer-c">
+            <span class="dom-c">vercel.com</span>
+            <div class="acts-c"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── D: Glassmorphism pill ─────────────── -->
+  <div class="section">
+    <div class="section-label">Design D</div>
+    <div class="section-title">Glassmorphism Pill</div>
+    <div class="section-desc">Размытый фон + цвет категории как «свечение» в углу. Фавикон крупнее, теги в виде пилюль снизу. Современный, мягкий.</div>
+    <div class="cards-row">
+      <div class="card-d" style="--cc:#6366f1">
+        <div class="top-d">
+          <div class="fav-d">🔖</div>
+          <div class="info-d">
+            <div class="ttl-d">Linear — Project Management</div>
+            <div class="dom-d">linear.app</div>
+          </div>
+        </div>
+        <div class="desc-d">The issue tracker built for modern software teams. Beautiful, fast, and elegant.</div>
+        <div class="bot-d">
+          <div class="tags-d"><span>design</span><span>tools</span></div>
+          <div class="acts-d"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-d" style="--cc:#ec4899">
+        <div class="top-d">
+          <div class="fav-d">⭐</div>
+          <div class="info-d">
+            <div class="ttl-d">Figma — Design Tool</div>
+            <div class="dom-d">figma.com</div>
+          </div>
+        </div>
+        <div class="desc-d">Collaborative design tool for building UI and prototypes.</div>
+        <div class="bot-d">
+          <div class="tags-d"><span>design</span><span>ui</span></div>
+          <div class="acts-d"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── E: Left accent stripe ─────────────── -->
+  <div class="section">
+    <div class="section-label">Design E</div>
+    <div class="section-title">Left Accent Stripe</div>
+    <div class="section-desc">Минималистичная полоска слева вместо верхней. Меньше занимает вертикального пространства, колонки выглядят компактнее.</div>
+    <div class="cards-row" style="flex-direction:column; align-items:flex-start;">
+      <div class="card-e" style="--cc:#6366f1">
+        <div class="top-e">
+          <div class="fav-e">🔖</div>
+          <div class="ttl-e">Linear — Project Management</div>
+        </div>
+        <div class="desc-e">The issue tracker built for modern software teams. Beautiful and fast.</div>
+        <div class="bot-e">
+          <span class="meta-e">linear.app · 12 visits</span>
+          <div class="tags-e"><span>design</span><span>tools</span></div>
+        </div>
+      </div>
+      <div class="card-e" style="--cc:#ec4899">
+        <div class="top-e">
+          <div class="fav-e">⭐</div>
+          <div class="ttl-e">Figma</div>
+          <span class="star-e">★</span>
+        </div>
+        <div class="bot-e">
+          <span class="meta-e">figma.com · 34 visits</span>
+          <div class="tags-e"><span>ui</span></div>
+        </div>
+      </div>
+      <div class="card-e" style="--cc:#10b981">
+        <div class="top-e">
+          <div class="fav-e">📦</div>
+          <div class="ttl-e">Vercel</div>
+        </div>
+        <div class="bot-e">
+          <span class="meta-e">vercel.com · 5 visits</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── F: Notion-style flat ─────────────── -->
+  <div class="section">
+    <div class="section-label">Design F</div>
+    <div class="section-title">Notion-style Flat</div>
+    <div class="section-desc">Максимально плоский. Цвет категории — квадратный аватар. Кнопки появляются только по hover. Вдохновлён Notion / Linear sidebar. Самый ненавязчивый.</div>
+    <div class="cards-row" style="flex-direction:column; align-items:flex-start;">
+      <div class="card-f" style="--cc:#6366f1">
+        <div class="row1-f">
+          <div class="avatar-f">🔖</div>
+          <div class="mid-f">
+            <div class="ttl-f">Linear — Project Management</div>
+            <div class="sub-f">linear.app</div>
+          </div>
+          <div class="acts-f">
+            <button>↗</button><button>✎</button><button>⋯</button>
+          </div>
+        </div>
+        <div class="tags-f"><span>design</span><span>tools</span><span>productivity</span></div>
+      </div>
+      <div class="card-f" style="--cc:#ec4899">
+        <div class="row1-f">
+          <div class="avatar-f">⭐</div>
+          <div class="mid-f">
+            <div class="ttl-f">Figma — Design Tool ★</div>
+            <div class="sub-f">figma.com</div>
+          </div>
+          <div class="acts-f">
+            <button>↗</button><button>✎</button><button>⋯</button>
+          </div>
+        </div>
+        <div class="tags-f"><span>design</span><span>ui</span></div>
+      </div>
+      <div class="card-f" style="--cc:#10b981">
+        <div class="row1-f">
+          <div class="avatar-f">📦</div>
+          <div class="mid-f">
+            <div class="ttl-f">Vercel</div>
+            <div class="sub-f">vercel.com</div>
+          </div>
+          <div class="acts-f">
+            <button>↗</button><button>✎</button><button>⋯</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Comparison table ─────────────────── -->
+  <div class="section">
+    <div class="section-label">Сравнение</div>
+    <div class="section-title">Плюсы и минусы каждого варианта</div>
+    <div class="compare">
+      <div class="compare-item">
+        <h3>A — Current</h3>
+        <p>Glassmorphism с полоской сверху. Хорошо вписывается в существующий стиль без изменений.</p>
+        <div class="badge-row">
+          <span class="badge pro">Не нужно менять CSS</span>
+          <span class="badge neutral">Средняя плотность</span>
+          <span class="badge con">Полоска сверху занимает место</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>B — Compact Row</h3>
+        <p>Горизонтальная строка. Максимум карточек в одной колонке. Похоже на List view в Dashboard.</p>
+        <div class="badge-row">
+          <span class="badge pro">Высокая плотность</span>
+          <span class="badge pro">Нет описания — меньше шума</span>
+          <span class="badge con">Нет места для описания</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>C — Media Card</h3>
+        <p>Цветная обложка сверху с фавиконом. Самый богатый визуально. Хорош когда карточек мало.</p>
+        <div class="badge-row">
+          <span class="badge pro">Выразительный</span>
+          <span class="badge pro">Хорошо передаёт цвет категории</span>
+          <span class="badge con">Низкая плотность</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>D — Glassmorphism Pill</h3>
+        <p>Фавикон + домен слева, свечение цветом категории. Современный и мягкий.</p>
+        <div class="badge-row">
+          <span class="badge pro">Современный вид</span>
+          <span class="badge pro">Крупный фавикон</span>
+          <span class="badge neutral">Требует backdrop-filter</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>E — Left Stripe</h3>
+        <p>Вертикальная полоска слева. Компактнее текущего, не теряет цветовую идентификацию.</p>
+        <div class="badge-row">
+          <span class="badge pro">Компактный</span>
+          <span class="badge pro">Минимальные правки CSS</span>
+          <span class="badge con">Менее заметен цвет</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>F — Notion Flat</h3>
+        <p>Максимально плоский. Кнопки скрыты до hover. Самый тихий визуально.</p>
+        <div class="badge-row">
+          <span class="badge pro">Чистейший вид</span>
+          <span class="badge pro">Много карточек в колонке</span>
+          <span class="badge con">Кнопки не видны</span>
+          <span class="badge con">Слабо выражен цвет</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
