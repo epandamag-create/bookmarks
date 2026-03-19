@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" id="main-stylesheet" href="styles.css">
+</head>
+<body>
+<script>
+  // Restore theme before first render to avoid flash
+  const validThemes = ['styles.css', 'styles black.css'];
+  const savedTheme = localStorage.getItem('bm_theme');
+  if (savedTheme && validThemes.includes(savedTheme)) {
+    document.getElementById('main-stylesheet').setAttribute('href', savedTheme);
+  } else if (savedTheme) {
+    localStorage.removeItem('bm_theme');
+  }
+</script>
+<script>
+  // Restore color scheme before first render (no-flash)
+  // Values are saved by schemes.js — no hardcoding needed here
+  (function() {
+    const vars = JSON.parse(localStorage.getItem('bm_scheme_vars') || 'null');
+    if (!vars) return;
+    const r = document.documentElement;
+    r.style.setProperty('--scheme-accent',        vars.accent);
+    r.style.setProperty('--scheme-accent-hover',  vars.accentHover);
+    r.style.setProperty('--scheme-accent-bg',     vars.accentBg);
+    r.style.setProperty('--scheme-accent-border', vars.accentBorder);
+    r.style.setProperty('--scheme-accent-glow',   vars.accentGlow);
+  })();
+</script>
+  <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="app-logo">
+        <div class="logo-icon">⚡</div>
+        <span class="logo-text">Bookmark OS</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Views</div>
+      <a href="#" class="nav-item" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a href="#" class="nav-item" data-view="list"><i data-lucide="list"></i><span>All Bookmarks</span></a>
+      <a href="#" class="nav-item" data-view="starred"><i data-lucide="star"></i><span>Starred</span></a>
+      <div class="nav-group-label">Discover</div>
+      <a href="#" class="nav-item" data-view="tags"><i data-lucide="tag"></i><span>Tags</span></a>
+      <a href="#" class="nav-item" data-view="graph"><i data-lucide="git-fork"></i><span>Graph</span></a>
+      <div class="nav-group-label">Manage</div>
+      <a href="#" class="nav-item" data-view="tools"><i data-lucide="wrench"></i><span>Tools</span></a>
+      <a href="#" class="nav-item" data-view="settings"><i data-lucide="settings"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-tabs-section" id="sidebar-tabs-section">
+      <div class="sidebar-section-header">
+        <button class="icon-btn sidebar-section-collapse-btn" id="workspaces-collapse-btn" title="Toggle workspaces"><i data-lucide="chevron-down"></i></button>
+        <span>Workspaces</span>
+        <button id="add-tab-btn" class="icon-btn" title="Add workspace"><i data-lucide="plus"></i></button>
+      </div>
+      <div id="sidebar-tabs-list" class="sidebar-tabs-list"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" style="position:relative">
+      <div class="topbar-left">
+        <button id="sidebar-toggle" class="icon-btn"><i data-lucide="panel-left"></i></button>
+        <div id="breadcrumb" class="breadcrumb"></div>
+      </div>
+      <div class="topbar-center">
+        <div class="search-wrapper">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="search-input" class="search-input" placeholder="Search bookmarks... (/)">
+          <button class="search-clear-btn" id="search-clear" title="Clear"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+          <div id="search-results" class="search-results hidden"></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div id="layout-switcher" class="layout-switcher hidden">
+          <button class="layout-btn" data-cols="3">3</button>
+          <button class="layout-btn" data-cols="4">4</button>
+          <button class="layout-btn" data-cols="5">5</button>
+        </div>
+        <button id="import-btn" class="btn btn-ghost" title="Import"><i data-lucide="upload"></i><span>Import</span></button>
+        <button id="add-bookmark-btn" class="btn btn-primary"><i data-lucide="plus"></i><span>Add</span></button>
+        <button id="cmd-palette-btn" class="icon-btn" title="Command Palette (⌘K)"><i data-lucide="terminal"></i></button>
+      </div>
+    </header>
+    <div class="mobile-search-row" id="mobile-search-row">
+      <div class="search-wrapper">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" id="mobile-search-input" class="search-input" placeholder="Search bookmarks...">
+        <button class="search-clear-btn" id="mobile-search-clear" title="Clear"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+        <div id="mobile-search-results" class="search-results hidden"></div>
+      </div>
+    </div>
+
+    <div class="tabs-bar" id="tabs-bar">
+      <button class="tabs-scroll-btn" id="tabs-scroll-left" style="display:none"><i data-lucide="chevron-left"></i></button>
+      <div class="tabs-list" id="tabs-list"></div>
+      <button class="tabs-scroll-btn" id="tabs-scroll-right" style="display:none"><i data-lucide="chevron-right"></i></button>
+    </div>
+
+    <div class="content" id="content"></div>
+  </main>
+
+  <div id="modal-overlay" class="modal-overlay hidden"></div>
+  <div id="bulk-actions-bar" class="bulk-actions-bar hidden"></div>
+  <div id="quick-add-bar" class="quick-add-bar">
+    <div id="quick-add-preview" class="quick-add-preview" style="display:none"></div>
+    <div class="quick-add-input-row">
+      <i data-lucide="zap" class="quick-add-icon"></i>
+      <input type="text" id="quick-add-input" class="quick-add-input" placeholder="Paste URL and press Enter... (Q)">
+      <kbd class="quick-add-kbd">Q</kbd>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container"></div>
+  <div id="context-menu" class="context-menu" style="display:none"></div>
+  <div id="cmd-palette-overlay" class="cmd-palette-overlay hidden"></div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/motion@10.18.0/dist/motion.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clusterize.js@0.19.0/clusterize.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/clusterize.js@0.19.0/clusterize.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+  <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="schemes.js"></script>
+  <script src="data.js"></script>
+  <script src="components.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
