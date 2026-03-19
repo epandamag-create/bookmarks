@@ -955,13 +955,17 @@ window.App = (() => {
         <h3>Export</h3>
         <div class="settings-row">
           <div><div class="settings-label">Export All Bookmarks</div><div class="settings-desc">Download as JSON file</div></div>
-          <button class="btn btn-ghost btn-sm" id="export-all"><i data-lucide="download"></i> Export All</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" id="export-all"><i data-lucide="download"></i> JSON</button>
+            <button class="btn btn-ghost btn-sm" id="export-all-xlsx"><i data-lucide="table-2"></i> XLSX</button>
+          </div>
         </div>
         <div class="settings-row">
           <div><div class="settings-label">Export Workspace</div><div class="settings-desc">Export a specific workspace</div></div>
           <div style="display:flex;gap:8px">
             <select class="form-select" id="export-tab-sel" style="padding:5px 8px;font-size:12px">${tabOpts}</select>
-            <button class="btn btn-ghost btn-sm" id="export-tab"><i data-lucide="download"></i> Export</button>
+            <button class="btn btn-ghost btn-sm" id="export-tab"><i data-lucide="download"></i> JSON</button>
+            <button class="btn btn-ghost btn-sm" id="export-tab-xlsx"><i data-lucide="table-2"></i> XLSX</button>
           </div>
         </div>
       </div>
@@ -991,10 +995,16 @@ window.App = (() => {
     });
 
     wrapper.querySelector('#export-all').onclick = () => { DB.exportJSON(); toast('Exported!', 'success'); };
+    wrapper.querySelector('#export-all-xlsx').onclick = () => { DB.exportXLSX(); toast('Exported as XLSX!', 'success'); };
     wrapper.querySelector('#export-tab').onclick = () => {
       const tabId = wrapper.querySelector('#export-tab-sel').value;
       DB.exportTabJSON(tabId);
       toast('Exported!', 'success');
+    };
+    wrapper.querySelector('#export-tab-xlsx').onclick = () => {
+      const tabId = wrapper.querySelector('#export-tab-sel').value;
+      DB.exportTabXLSX(tabId);
+      toast('Exported as XLSX!', 'success');
     };
     wrapper.querySelector('#settings-import').onclick = () => Components.ImportModal();
     wrapper.querySelector('#reset-data').onclick = () => {

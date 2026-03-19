@@ -474,6 +474,51 @@ window.DB = (() => {
     downloadJSON({ bookmarks: bms }, `selected-bookmarks-${new Date().toISOString().slice(0,10)}.json`);
   }
 
+  function bmsToXLSXRows(bms) {
+    const catMap = Object.fromEntries(data.categories.map(c => [c.id, c.name]));
+    const tabMap = Object.fromEntries(data.tabs.map(t => [t.id, t.name]));
+    const catTab = Object.fromEntries(data.categories.map(c => [c.id, tabMap[c.tabId] || '']));
+    return bms.map(b => ({
+      Title:    b.title || '',
+      URL:      b.url || '',
+      Category: catMap[b.categoryId] || '',
+      Workspace: catTab[b.categoryId] || '',
+      Tags:     (b.tags || []).join(', '),
+      Notes:    b.notes || '',
+      Starred:  b.starred ? 'Yes' : 'No',
+      Visits:   b.visits || 0,
+      Added:    b.createdAt ? new Date(b.createdAt).toLocaleDateString() : '',
+    }));
+  }
+
+  function downloadXLSX(rows, filename) {
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const colWidths = [
+      { wch: 40 }, { wch: 55 }, { wch: 20 }, { wch: 20 },
+      { wch: 25 }, { wch: 30 }, { wch: 8 }, { wch: 7 }, { wch: 12 },
+    ];
+    ws['!cols'] = colWidths;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bookmarks');
+    XLSX.writeFile(wb, filename);
+  }
+
+  function exportXLSX() {
+    downloadXLSX(bmsToXLSXRows(data.bookmarks), `bookmarks-${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+
+  function exportTabXLSX(tabId) {
+    const catIds = new Set(data.categories.filter(c => c.tabId === tabId).map(c => c.id));
+    const tab = getTabById(tabId);
+    const bms = data.bookmarks.filter(b => catIds.has(b.categoryId));
+    const rows = bmsToXLSXRows(bms);
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{ wch: 40 }, { wch: 55 }, { wch: 20 }, { wch: 20 }, { wch: 25 }, { wch: 30 }, { wch: 8 }, { wch: 7 }, { wch: 12 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, tab?.name || 'Workspace');
+    XLSX.writeFile(wb, `${(tab?.name || 'tab').toLowerCase().replace(/\s/g, '-')}-bookmarks.xlsx`);
+  }
+
   // Settings
   function getColumns() { return data.dashboardColumns || 4; }
   function setColumns(n) { data.dashboardColumns = n; save(); }
@@ -504,7 +549,7 @@ window.DB = (() => {
     // Tools
     findDuplicates, findDeadLinks, findRarelyVisited,
     // Import / Export
-    parseNetscapeHTML, importFromNetscape, exportJSON, exportTabJSON, exportSelected,
+    parseNetscapeHTML, importFromNetscape, exportJSON, exportTabJSON, exportSelected, exportXLSX, exportTabXLSX,
     // Settings
     getColumns, setColumns,
   };
