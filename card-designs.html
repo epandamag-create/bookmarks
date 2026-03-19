@@ -255,6 +255,304 @@
     .badge.pro { background:rgba(16,185,129,0.15); color:#34d399; }
     .badge.con { background:rgba(239,68,68,0.12); color:#f87171; }
     .badge.neutral { background:rgba(100,116,139,0.15); color:#94a3b8; }
+
+    /* ─── G: Split panel ──────────────────── */
+    .card-g {
+      width:280px; background:#0d1117;
+      border:1px solid rgba(255,255,255,0.07); border-radius:10px;
+      overflow:hidden; cursor:pointer; transition:border-color 0.15s;
+      display:flex; flex-direction:column;
+    }
+    .card-g:hover { border-color:rgba(255,255,255,0.16); }
+    .card-g .top-g {
+      display:flex; gap:12px; padding:12px 12px 10px; align-items:flex-start;
+    }
+    .card-g .fav-g {
+      width:38px; height:38px; border-radius:8px; flex-shrink:0;
+      background:var(--cc,#6366f1); opacity:.8;
+      display:flex; align-items:center; justify-content:center; font-size:17px;
+    }
+    .card-g .info-g { flex:1; min-width:0; }
+    .card-g .ttl-g { font-size:13px; font-weight:500; color:#f1f5f9; margin-bottom:3px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-g .desc-g { font-size:11px; color:#64748b; line-height:1.4;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-g .divider-g { height:1px; background:rgba(255,255,255,0.05); }
+    .card-g .bot-g {
+      display:flex; align-items:center; padding:7px 12px; gap:6px;
+    }
+    .card-g .dom-g { font-size:11px; color:#334155; font-family:'DM Mono',monospace; flex:1; }
+    .card-g .tags-g { display:flex; gap:3px; }
+    .card-g .tags-g span { font-size:10px; background:rgba(255,255,255,0.05); color:#4f6080; border-radius:3px; padding:1px 5px; }
+    .card-g .acts-g { display:flex; gap:2px; }
+    .card-g .acts-g button { width:22px; height:22px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:4px; font-size:11px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-g .acts-g button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─── H: Neon glow ──────────────────── */
+    .card-h {
+      width:260px; background:#080d14;
+      border:1px solid color-mix(in srgb, var(--cc,#6366f1) 30%, transparent);
+      border-radius:10px; padding:13px; cursor:pointer;
+      transition:box-shadow 0.2s;
+      box-shadow: 0 0 0 0 transparent;
+    }
+    .card-h:hover {
+      box-shadow: 0 0 16px -2px color-mix(in srgb, var(--cc,#6366f1) 40%, transparent);
+      border-color: color-mix(in srgb, var(--cc,#6366f1) 55%, transparent);
+    }
+    .card-h .head-h { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+    .card-h .fav-h {
+      width:24px; height:24px; border-radius:5px; flex-shrink:0;
+      background:color-mix(in srgb, var(--cc,#6366f1) 20%, #0d1321);
+      border:1px solid color-mix(in srgb, var(--cc,#6366f1) 35%, transparent);
+      display:flex; align-items:center; justify-content:center; font-size:12px;
+    }
+    .card-h .ttl-h { font-size:13px; font-weight:500; color:#e2e8f0; flex:1;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-h .desc-h { font-size:12px; color:#475569; line-height:1.4; margin-bottom:9px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-h .bot-h { display:flex; align-items:center; justify-content:space-between; }
+    .card-h .dom-h {
+      font-size:10px; font-family:'DM Mono',monospace;
+      color:color-mix(in srgb, var(--cc,#6366f1) 70%, #94a3b8);
+    }
+    .card-h .acts-h { display:flex; gap:2px; }
+    .card-h .acts-h button { width:22px; height:22px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:4px; font-size:11px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-h .acts-h button:hover { color:#e2e8f0; background:rgba(255,255,255,0.08); }
+
+    /* ─── I: Timeline / feed ────────────── */
+    .card-i {
+      width:300px; display:flex; gap:12px; padding:6px 0; cursor:pointer;
+    }
+    .card-i .side-i {
+      display:flex; flex-direction:column; align-items:center; width:28px; flex-shrink:0;
+    }
+    .card-i .dot-i {
+      width:10px; height:10px; border-radius:50%; background:var(--cc,#6366f1);
+      flex-shrink:0; margin-top:4px; box-shadow:0 0 6px color-mix(in srgb, var(--cc,#6366f1) 60%, transparent);
+    }
+    .card-i .line-i { width:1px; flex:1; background:rgba(255,255,255,0.07); margin-top:4px; }
+    .card-i .body-i { flex:1; min-width:0; padding-bottom:14px; }
+    .card-i .ttl-i { font-size:13px; font-weight:500; color:#e2e8f0; margin-bottom:3px; }
+    .card-i .desc-i { font-size:12px; color:#64748b; line-height:1.4; margin-bottom:5px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-i .row-i { display:flex; align-items:center; gap:6px; }
+    .card-i .dom-i { font-size:10px; color:#334155; font-family:'DM Mono',monospace; }
+    .card-i .tag-i { font-size:10px; background:rgba(255,255,255,0.05); color:#4f6080; border-radius:3px; padding:1px 5px; }
+    .card-i .acts-i { display:flex; gap:2px; margin-left:auto; }
+    .card-i .acts-i button { width:20px; height:20px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:3px; font-size:10px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-i .acts-i button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─── J: Stat card ──────────────────── */
+    .card-j {
+      width:220px; background:#0d1117;
+      border:1px solid rgba(255,255,255,0.07); border-radius:12px;
+      padding:14px; cursor:pointer; transition:background 0.15s;
+    }
+    .card-j:hover { background:#111827; }
+    .card-j .top-j { display:flex; justify-content:space-between; margin-bottom:10px; }
+    .card-j .fav-j { width:32px; height:32px; border-radius:8px;
+      background:color-mix(in srgb, var(--cc,#6366f1) 18%, #0d1321);
+      display:flex; align-items:center; justify-content:center; font-size:15px;
+      border:1px solid color-mix(in srgb, var(--cc,#6366f1) 28%, transparent); }
+    .card-j .visits-j {
+      font-size:20px; font-weight:600; color:#f1f5f9; font-family:'DM Mono',monospace;
+      line-height:1;
+    }
+    .card-j .visits-label-j { font-size:9px; color:#475569; text-transform:uppercase; letter-spacing:.08em; margin-top:1px; text-align:right; }
+    .card-j .ttl-j { font-size:13px; font-weight:500; color:#e2e8f0; margin-bottom:3px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-j .dom-j { font-size:11px; color:#334155; font-family:'DM Mono',monospace; margin-bottom:10px; }
+    .card-j .bar-j { height:3px; background:rgba(255,255,255,0.07); border-radius:2px; margin-bottom:10px; }
+    .card-j .bar-j .fill-j { height:100%; border-radius:2px; background:var(--cc,#6366f1); }
+    .card-j .bot-j { display:flex; justify-content:space-between; align-items:center; }
+    .card-j .tags-j { display:flex; gap:3px; }
+    .card-j .tags-j span { font-size:10px; background:rgba(255,255,255,0.05); color:#475569; border-radius:3px; padding:1px 5px; }
+    .card-j .acts-j { display:flex; gap:2px; }
+    .card-j .acts-j button { width:20px; height:20px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:4px; font-size:10px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-j .acts-j button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─── K: Tag-first ─────────────────── */
+    .card-k {
+      width:260px; background:rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.07); border-radius:10px;
+      padding:11px 12px; cursor:pointer; transition:background 0.15s;
+    }
+    .card-k:hover { background:rgba(255,255,255,0.06); }
+    .card-k .cat-k {
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.1em;
+      color:var(--cc,#6366f1); margin-bottom:7px;
+    }
+    .card-k .cat-k .dot-k { width:5px; height:5px; border-radius:50%; background:var(--cc,#6366f1); }
+    .card-k .ttl-k { font-size:14px; font-weight:500; color:#f1f5f9; margin-bottom:4px;
+      line-height:1.3; }
+    .card-k .desc-k { font-size:12px; color:#64748b; line-height:1.4; margin-bottom:8px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-k .tags-k { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }
+    .card-k .tags-k span {
+      font-size:10px;
+      background:color-mix(in srgb, var(--cc,#6366f1) 12%, transparent);
+      color:color-mix(in srgb, var(--cc,#6366f1) 80%, #94a3b8);
+      border:1px solid color-mix(in srgb, var(--cc,#6366f1) 25%, transparent);
+      border-radius:4px; padding:1px 6px;
+    }
+    .card-k .foot-k { display:flex; justify-content:space-between; align-items:center; }
+    .card-k .dom-k { font-size:11px; color:#334155; font-family:'DM Mono',monospace; }
+    .card-k .acts-k { display:flex; gap:2px; }
+    .card-k .acts-k button { width:22px; height:22px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:4px; font-size:11px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-k .acts-k button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─── L: Two-column mini ─────────────── */
+    .card-l {
+      width:200px; background:#0d1117;
+      border:1px solid rgba(255,255,255,0.07); border-radius:10px;
+      padding:12px; cursor:pointer; transition:background 0.15s;
+    }
+    .card-l:hover { background:#111827; }
+    .card-l .fav-l {
+      width:40px; height:40px; border-radius:9px; margin-bottom:10px;
+      background:color-mix(in srgb, var(--cc,#6366f1) 20%, #0d1321);
+      display:flex; align-items:center; justify-content:center; font-size:18px;
+      border:1px solid rgba(255,255,255,0.06);
+    }
+    .card-l .ttl-l { font-size:13px; font-weight:500; color:#f1f5f9; margin-bottom:3px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.35; }
+    .card-l .dom-l { font-size:10px; color:#334155; font-family:'DM Mono',monospace; margin-bottom:10px; }
+    .card-l .sep-l { height:1px; background:rgba(255,255,255,0.05); margin-bottom:8px; }
+    .card-l .foot-l { display:flex; justify-content:space-between; align-items:center; }
+    .card-l .tags-l { display:flex; gap:3px; flex-wrap:wrap; }
+    .card-l .tags-l span { font-size:9px; background:rgba(255,255,255,0.05); color:#475569; border-radius:3px; padding:1px 4px; }
+    .card-l .acts-l { display:flex; gap:1px; }
+    .card-l .acts-l button { width:20px; height:20px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:4px; font-size:10px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-l .acts-l button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─── M: Rainbow border ─────────────── */
+    .card-m {
+      width:260px; border-radius:11px; padding:1.5px; cursor:pointer;
+      background: linear-gradient(135deg, var(--cc,#6366f1), color-mix(in srgb, var(--cc,#6366f1) 40%, #ec4899));
+      transition: opacity 0.15s;
+    }
+    .card-m:hover { opacity:.88; }
+    .card-m .inner-m {
+      background:#090e18; border-radius:10px; padding:12px;
+    }
+    .card-m .head-m { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+    .card-m .fav-m { width:26px; height:26px; border-radius:6px; flex-shrink:0;
+      background:rgba(255,255,255,0.06);
+      display:flex; align-items:center; justify-content:center; font-size:13px; }
+    .card-m .ttl-m { font-size:13px; font-weight:500; color:#f1f5f9; flex:1;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-m .desc-m { font-size:12px; color:#64748b; line-height:1.4; margin-bottom:8px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-m .bot-m { display:flex; justify-content:space-between; align-items:center; }
+    .card-m .dom-m { font-size:10px; color:#334155; font-family:'DM Mono',monospace; }
+    .card-m .acts-m { display:flex; gap:2px; }
+    .card-m .acts-m button { width:22px; height:22px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:4px; font-size:11px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-m .acts-m button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─── N: Sticky note ────────────────── */
+    .card-n {
+      width:230px;
+      background:color-mix(in srgb, var(--cc,#6366f1) 8%, #0d1220);
+      border:1px solid color-mix(in srgb, var(--cc,#6366f1) 20%, transparent);
+      border-radius:4px 12px 12px 12px;
+      padding:12px; cursor:pointer; position:relative; overflow:hidden;
+      transition:background 0.15s;
+    }
+    .card-n::before {
+      content:''; position:absolute; top:0; left:0;
+      width:0; height:0;
+      border-style:solid;
+      border-width:16px 16px 0 0;
+      border-color:color-mix(in srgb, var(--cc,#6366f1) 40%, transparent) transparent transparent transparent;
+    }
+    .card-n:hover { background:color-mix(in srgb, var(--cc,#6366f1) 12%, #0d1220); }
+    .card-n .ttl-n { font-size:13px; font-weight:500; color:#f1f5f9; margin-bottom:5px;
+      padding-left:16px; line-height:1.35; }
+    .card-n .desc-n { font-size:12px; color:#94a3b8; line-height:1.45; margin-bottom:9px;
+      display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .card-n .tags-n { display:flex; gap:3px; flex-wrap:wrap; margin-bottom:8px; }
+    .card-n .tags-n span {
+      font-size:10px;
+      background:color-mix(in srgb, var(--cc,#6366f1) 15%, transparent);
+      color:color-mix(in srgb, var(--cc,#6366f1) 75%, #94a3b8);
+      border-radius:3px; padding:1px 5px;
+    }
+    .card-n .foot-n { display:flex; justify-content:space-between; align-items:center; }
+    .card-n .dom-n { font-size:10px; color:#334155; font-family:'DM Mono',monospace; }
+    .card-n .acts-n { display:flex; gap:2px; }
+    .card-n .acts-n button { width:20px; height:20px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:4px; font-size:10px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-n .acts-n button:hover { background:rgba(255,255,255,0.1); color:#e2e8f0; }
+
+    /* ─── O: Wide horizontal ─────────────── */
+    .card-o {
+      width:440px; background:#0d1117;
+      border:1px solid rgba(255,255,255,0.07); border-radius:10px;
+      padding:12px 14px; cursor:pointer; display:flex; gap:14px; align-items:center;
+      transition:background 0.15s;
+    }
+    .card-o:hover { background:#111827; }
+    .card-o .accent-o {
+      width:4px; height:52px; border-radius:2px; flex-shrink:0;
+      background:var(--cc,#6366f1);
+    }
+    .card-o .fav-o { width:36px; height:36px; border-radius:8px; flex-shrink:0;
+      background:rgba(255,255,255,0.05);
+      display:flex; align-items:center; justify-content:center; font-size:16px;
+      border:1px solid rgba(255,255,255,0.06); }
+    .card-o .body-o { flex:1; min-width:0; }
+    .card-o .ttl-o { font-size:13px; font-weight:500; color:#f1f5f9; margin-bottom:3px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-o .sub-o { font-size:12px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-o .right-o { flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+    .card-o .dom-o { font-size:10px; color:#334155; font-family:'DM Mono',monospace; }
+    .card-o .tags-o { display:flex; gap:3px; }
+    .card-o .tags-o span { font-size:10px; background:rgba(255,255,255,0.05); color:#4f6080; border-radius:3px; padding:1px 5px; }
+    .card-o .acts-o { display:flex; gap:2px; }
+    .card-o .acts-o button { width:26px; height:26px; background:none; border:none;
+      color:#475569; cursor:pointer; border-radius:5px; font-size:12px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-o .acts-o button:hover { background:rgba(255,255,255,0.08); color:#e2e8f0; }
+
+    /* ─── P: Minimal mono ─────────────────── */
+    .card-p {
+      width:260px; padding:10px 12px; cursor:pointer; border-radius:6px;
+      border-left:2px solid var(--cc,#6366f1);
+      background:rgba(255,255,255,0.025);
+      transition:background 0.12s;
+      font-family:'DM Mono',monospace;
+    }
+    .card-p:hover { background:rgba(255,255,255,0.05); }
+    .card-p .ttl-p { font-size:12px; color:#94a3b8; margin-bottom:3px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-p .url-p { font-size:11px; color:var(--cc,#6366f1); opacity:.7; margin-bottom:5px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-p .row-p { display:flex; align-items:center; justify-content:space-between; }
+    .card-p .tags-p { display:flex; gap:4px; }
+    .card-p .tags-p span { font-size:10px; color:#334155; }
+    .card-p .tags-p span::before { content:'#'; }
+    .card-p .acts-p { display:flex; gap:2px; font-family:'DM Sans',sans-serif; }
+    .card-p .acts-p button { width:20px; height:20px; background:none; border:none;
+      color:#334155; cursor:pointer; border-radius:3px; font-size:10px;
+      display:flex; align-items:center; justify-content:center; }
+    .card-p .acts-p button:hover { color:#94a3b8; }
   </style>
 </head>
 <body>
@@ -520,6 +818,428 @@
     </div>
   </div>
 
+  <!-- ── G: Split panel ───────────────────── -->
+  <div class="section">
+    <div class="section-label">Design G</div>
+    <div class="section-title">Split Panel</div>
+    <div class="section-desc">Крупный аватар-иконка слева, описание справа. Нижняя панель с доменом и тегами отделена разделителем. Чёткая иерархия.</div>
+    <div class="cards-row">
+      <div class="card-g" style="--cc:#6366f1">
+        <div class="top-g">
+          <div class="fav-g">🔖</div>
+          <div class="info-g">
+            <div class="ttl-g">Linear — Project Management</div>
+            <div class="desc-g">The issue tracker built for modern software teams. Beautiful, fast, and elegant.</div>
+          </div>
+        </div>
+        <div class="divider-g"></div>
+        <div class="bot-g">
+          <span class="dom-g">linear.app</span>
+          <div class="tags-g"><span>design</span><span>tools</span></div>
+          <div class="acts-g"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-g" style="--cc:#ec4899">
+        <div class="top-g">
+          <div class="fav-g">⭐</div>
+          <div class="info-g">
+            <div class="ttl-g">Figma — Design Tool</div>
+            <div class="desc-g">Collaborative interface design tool for teams.</div>
+          </div>
+        </div>
+        <div class="divider-g"></div>
+        <div class="bot-g">
+          <span class="dom-g">figma.com</span>
+          <div class="tags-g"><span>ui</span></div>
+          <div class="acts-g"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-g" style="--cc:#10b981">
+        <div class="top-g">
+          <div class="fav-g">📦</div>
+          <div class="info-g">
+            <div class="ttl-g">Vercel</div>
+            <div class="desc-g">Deploy web projects with zero configuration.</div>
+          </div>
+        </div>
+        <div class="divider-g"></div>
+        <div class="bot-g">
+          <span class="dom-g">vercel.com</span>
+          <div class="acts-g"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── H: Neon glow ──────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design H</div>
+    <div class="section-title">Neon Glow</div>
+    <div class="section-desc">Рамка и детали цвета категории. При hover — свечение этим же цветом. Домен покрашен в цвет категории. Кибер-эстетика.</div>
+    <div class="cards-row">
+      <div class="card-h" style="--cc:#6366f1">
+        <div class="head-h">
+          <div class="fav-h">🔖</div>
+          <div class="ttl-h">Linear — Project Management</div>
+        </div>
+        <div class="desc-h">The issue tracker built for modern software teams. Beautiful and fast.</div>
+        <div class="bot-h">
+          <span class="dom-h">linear.app</span>
+          <div class="acts-h"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-h" style="--cc:#ec4899">
+        <div class="head-h">
+          <div class="fav-h">⭐</div>
+          <div class="ttl-h">Figma — Design Tool</div>
+        </div>
+        <div class="desc-h">Collaborative interface design tool.</div>
+        <div class="bot-h">
+          <span class="dom-h">figma.com</span>
+          <div class="acts-h"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-h" style="--cc:#f59e0b">
+        <div class="head-h">
+          <div class="fav-h">📦</div>
+          <div class="ttl-h">Vercel</div>
+        </div>
+        <div class="bot-h">
+          <span class="dom-h">vercel.com</span>
+          <div class="acts-h"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── I: Timeline / feed ─────────────────── -->
+  <div class="section">
+    <div class="section-label">Design I</div>
+    <div class="section-title">Timeline / Feed</div>
+    <div class="section-desc">Карточки соединены вертикальной линией как в activity feed. Цветная точка — акцент категории. Необычно для Dashboard, хорошо для Starred/Recent.</div>
+    <div class="cards-row" style="flex-direction:column; align-items:flex-start;">
+      <div class="card-i" style="--cc:#6366f1">
+        <div class="side-i"><div class="dot-i"></div><div class="line-i"></div></div>
+        <div class="body-i">
+          <div class="ttl-i">Linear — Project Management</div>
+          <div class="desc-i">The issue tracker built for modern software teams.</div>
+          <div class="row-i">
+            <span class="dom-i">linear.app</span>
+            <span class="tag-i">design</span>
+            <span class="tag-i">tools</span>
+            <div class="acts-i"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-i" style="--cc:#ec4899">
+        <div class="side-i"><div class="dot-i"></div><div class="line-i"></div></div>
+        <div class="body-i">
+          <div class="ttl-i">Figma — Design Tool ★</div>
+          <div class="desc-i">Collaborative interface design tool for teams.</div>
+          <div class="row-i">
+            <span class="dom-i">figma.com</span>
+            <span class="tag-i">ui</span>
+            <div class="acts-i"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-i" style="--cc:#10b981">
+        <div class="side-i"><div class="dot-i"></div></div>
+        <div class="body-i">
+          <div class="ttl-i">Vercel</div>
+          <div class="row-i">
+            <span class="dom-i">vercel.com</span>
+            <div class="acts-i"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── J: Stat card ──────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design J</div>
+    <div class="section-title">Stat Card</div>
+    <div class="section-desc">Число визитов вынесено как большой акцентный показатель. Прогресс-бар визуализирует популярность внутри категории. Для аналитического взгляда.</div>
+    <div class="cards-row">
+      <div class="card-j" style="--cc:#6366f1">
+        <div class="top-j">
+          <div class="fav-j">🔖</div>
+          <div>
+            <div class="visits-j">42</div>
+            <div class="visits-label-j">visits</div>
+          </div>
+        </div>
+        <div class="ttl-j">Linear — Project Mgmt</div>
+        <div class="dom-j">linear.app</div>
+        <div class="bar-j"><div class="fill-j" style="width:84%"></div></div>
+        <div class="bot-j">
+          <div class="tags-j"><span>design</span><span>tools</span></div>
+          <div class="acts-j"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-j" style="--cc:#ec4899">
+        <div class="top-j">
+          <div class="fav-j">⭐</div>
+          <div>
+            <div class="visits-j">17</div>
+            <div class="visits-label-j">visits</div>
+          </div>
+        </div>
+        <div class="ttl-j">Figma</div>
+        <div class="dom-j">figma.com</div>
+        <div class="bar-j"><div class="fill-j" style="width:34%"></div></div>
+        <div class="bot-j">
+          <div class="tags-j"><span>ui</span></div>
+          <div class="acts-j"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-j" style="--cc:#10b981">
+        <div class="top-j">
+          <div class="fav-j">📦</div>
+          <div>
+            <div class="visits-j">5</div>
+            <div class="visits-label-j">visits</div>
+          </div>
+        </div>
+        <div class="ttl-j">Vercel</div>
+        <div class="dom-j">vercel.com</div>
+        <div class="bar-j"><div class="fill-j" style="width:10%"></div></div>
+        <div class="bot-j">
+          <div class="acts-j"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── K: Tag-first ─────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design K</div>
+    <div class="section-title">Tag-first</div>
+    <div class="section-desc">Название категории вынесено наверх как цветной лейбл. Теги покрашены в цвет категории. Акцент на контекст принадлежности.</div>
+    <div class="cards-row">
+      <div class="card-k" style="--cc:#6366f1">
+        <div class="cat-k"><span class="dot-k"></span> Dev Tools</div>
+        <div class="ttl-k">Linear — Project Management</div>
+        <div class="desc-k">The issue tracker built for modern software teams. Beautiful and fast.</div>
+        <div class="tags-k"><span>design</span><span>tools</span><span>productivity</span></div>
+        <div class="foot-k">
+          <span class="dom-k">linear.app</span>
+          <div class="acts-k"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-k" style="--cc:#ec4899">
+        <div class="cat-k"><span class="dot-k"></span> Design</div>
+        <div class="ttl-k">Figma</div>
+        <div class="desc-k">Collaborative interface design tool for teams and solo creators.</div>
+        <div class="tags-k"><span>design</span><span>ui</span></div>
+        <div class="foot-k">
+          <span class="dom-k">figma.com</span>
+          <div class="acts-k"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── L: Two-column mini ─────────────────── -->
+  <div class="section">
+    <div class="section-label">Design L</div>
+    <div class="section-title">Mini Square</div>
+    <div class="section-desc">Квадратный формат — как плитка приложений. Крупный фавикон сверху, минимум текста. Хорош для Dashboard в режиме 5 колонок.</div>
+    <div class="cards-row">
+      <div class="card-l" style="--cc:#6366f1">
+        <div class="fav-l">🔖</div>
+        <div class="ttl-l">Linear — Project Management</div>
+        <div class="dom-l">linear.app</div>
+        <div class="sep-l"></div>
+        <div class="foot-l">
+          <div class="tags-l"><span>design</span><span>tools</span></div>
+          <div class="acts-l"><button>↗</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-l" style="--cc:#ec4899">
+        <div class="fav-l">⭐</div>
+        <div class="ttl-l">Figma</div>
+        <div class="dom-l">figma.com</div>
+        <div class="sep-l"></div>
+        <div class="foot-l">
+          <div class="tags-l"><span>ui</span></div>
+          <div class="acts-l"><button>↗</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-l" style="--cc:#10b981">
+        <div class="fav-l">📦</div>
+        <div class="ttl-l">Vercel</div>
+        <div class="dom-l">vercel.com</div>
+        <div class="sep-l"></div>
+        <div class="foot-l">
+          <div class="tags-l"></div>
+          <div class="acts-l"><button>↗</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-l" style="--cc:#f59e0b">
+        <div class="fav-l">🧪</div>
+        <div class="ttl-l">Vitest — Unit Testing</div>
+        <div class="dom-l">vitest.dev</div>
+        <div class="sep-l"></div>
+        <div class="foot-l">
+          <div class="tags-l"><span>test</span></div>
+          <div class="acts-l"><button>↗</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── M: Gradient border ─────────────────── -->
+  <div class="section">
+    <div class="section-label">Design M</div>
+    <div class="section-title">Gradient Border</div>
+    <div class="section-desc">Рамка — градиент из цвета категории в розовый. Внутри тёмный фон. Нарядно, но не кричит. Хорошо для избранных закладок.</div>
+    <div class="cards-row">
+      <div class="card-m" style="--cc:#6366f1">
+        <div class="inner-m">
+          <div class="head-m">
+            <div class="fav-m">🔖</div>
+            <div class="ttl-m">Linear — Project Management</div>
+          </div>
+          <div class="desc-m">The issue tracker built for modern software teams. Beautiful and fast.</div>
+          <div class="bot-m">
+            <span class="dom-m">linear.app</span>
+            <div class="acts-m"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-m" style="--cc:#06b6d4">
+        <div class="inner-m">
+          <div class="head-m">
+            <div class="fav-m">⭐</div>
+            <div class="ttl-m">Figma — Design Tool</div>
+          </div>
+          <div class="desc-m">Collaborative design and prototyping tool.</div>
+          <div class="bot-m">
+            <span class="dom-m">figma.com</span>
+            <div class="acts-m"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-m" style="--cc:#10b981">
+        <div class="inner-m">
+          <div class="head-m">
+            <div class="fav-m">📦</div>
+            <div class="ttl-m">Vercel</div>
+          </div>
+          <div class="bot-m">
+            <span class="dom-m">vercel.com</span>
+            <div class="acts-m"><button>↗</button><button>✎</button><button>⋯</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── N: Sticky note ──────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design N</div>
+    <div class="section-title">Sticky Note</div>
+    <div class="section-desc">Загнутый уголок сверху слева — как на стикере. Фон подкрашен цветом категории. Уютный, «физический» вид.</div>
+    <div class="cards-row">
+      <div class="card-n" style="--cc:#6366f1">
+        <div class="ttl-n">Linear — Project Management</div>
+        <div class="desc-n">The issue tracker built for modern software teams. Beautiful, fast, and elegant with great keyboard support.</div>
+        <div class="tags-n"><span>design</span><span>tools</span><span>productivity</span></div>
+        <div class="foot-n">
+          <span class="dom-n">linear.app</span>
+          <div class="acts-n"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-n" style="--cc:#ec4899">
+        <div class="ttl-n">Figma — Design Tool ★</div>
+        <div class="desc-n">Collaborative interface design tool. Build wireframes, design systems, and prototypes.</div>
+        <div class="tags-n"><span>design</span><span>ui</span></div>
+        <div class="foot-n">
+          <span class="dom-n">figma.com</span>
+          <div class="acts-n"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-n" style="--cc:#f59e0b">
+        <div class="ttl-n">Vercel</div>
+        <div class="desc-n">Deploy web projects with zero configuration. Instant previews.</div>
+        <div class="foot-n">
+          <span class="dom-n">vercel.com</span>
+          <div class="acts-n"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── O: Wide horizontal ──────────────────── -->
+  <div class="section">
+    <div class="section-label">Design O</div>
+    <div class="section-title">Wide Row</div>
+    <div class="section-desc">Широкая горизонтальная карточка на всю ширину колонки. Вертикальная полоска + фавикон слева, теги и кнопки справа. Для 2-3 колонок.</div>
+    <div class="cards-row" style="flex-direction:column; align-items:flex-start;">
+      <div class="card-o" style="--cc:#6366f1">
+        <div class="accent-o"></div>
+        <div class="fav-o">🔖</div>
+        <div class="body-o">
+          <div class="ttl-o">Linear — Project Management</div>
+          <div class="sub-o">The issue tracker built for modern software teams</div>
+        </div>
+        <div class="right-o">
+          <div class="tags-o"><span>design</span><span>tools</span></div>
+          <span class="dom-o">linear.app</span>
+        </div>
+        <div class="acts-o"><button>↗</button><button>✎</button><button>⋯</button></div>
+      </div>
+      <div class="card-o" style="--cc:#ec4899">
+        <div class="accent-o"></div>
+        <div class="fav-o">⭐</div>
+        <div class="body-o">
+          <div class="ttl-o">Figma — Design Tool ★</div>
+          <div class="sub-o">Collaborative interface design tool for teams</div>
+        </div>
+        <div class="right-o">
+          <div class="tags-o"><span>ui</span></div>
+          <span class="dom-o">figma.com</span>
+        </div>
+        <div class="acts-o"><button>↗</button><button>✎</button><button>⋯</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── P: Minimal mono ──────────────────────── -->
+  <div class="section">
+    <div class="section-label">Design P</div>
+    <div class="section-title">Minimal Mono</div>
+    <div class="section-desc">Полностью моноспейсный. Заголовок и URL — как строки в терминале. Теги через #. Для разработчиков, ценящих raw эстетику.</div>
+    <div class="cards-row" style="flex-direction:column; align-items:flex-start;">
+      <div class="card-p" style="--cc:#6366f1">
+        <div class="ttl-p">Linear — Project Management</div>
+        <div class="url-p">linear.app</div>
+        <div class="row-p">
+          <div class="tags-p"><span>design</span><span>tools</span><span>productivity</span></div>
+          <div class="acts-p"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-p" style="--cc:#ec4899">
+        <div class="ttl-p">Figma — Design Tool ★</div>
+        <div class="url-p">figma.com</div>
+        <div class="row-p">
+          <div class="tags-p"><span>design</span><span>ui</span></div>
+          <div class="acts-p"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+      <div class="card-p" style="--cc:#10b981">
+        <div class="ttl-p">Vercel</div>
+        <div class="url-p">vercel.com</div>
+        <div class="row-p">
+          <div class="tags-p"></div>
+          <div class="acts-p"><button>↗</button><button>✎</button><button>⋯</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Comparison table ─────────────────── -->
   <div class="section">
     <div class="section-label">Сравнение</div>
@@ -578,6 +1298,98 @@
           <span class="badge pro">Много карточек в колонке</span>
           <span class="badge con">Кнопки не видны</span>
           <span class="badge con">Слабо выражен цвет</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>G — Split Panel</h3>
+        <p>Верхняя часть с фавиконом и текстом, нижняя — мета. Разделитель создаёт чёткую структуру.</p>
+        <div class="badge-row">
+          <span class="badge pro">Чёткая иерархия</span>
+          <span class="badge pro">Крупная иконка</span>
+          <span class="badge neutral">Чуть выше текущего</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>H — Neon Glow</h3>
+        <p>Цвет категории проникает в рамку, фавикон и домен. Hover даёт glow-эффект.</p>
+        <div class="badge-row">
+          <span class="badge pro">Уникальная атмосфера</span>
+          <span class="badge pro">Цвет повсюду</span>
+          <span class="badge con">Может быть ярко</span>
+          <span class="badge neutral">Требует color-mix()</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>I — Timeline</h3>
+        <p>Карточки соединены линией как в activity feed. Нестандартный подход для Dashboard.</p>
+        <div class="badge-row">
+          <span class="badge pro">Очень компактный</span>
+          <span class="badge pro">Хорош для Starred/Recent</span>
+          <span class="badge con">Непривычно для Dashboard</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>J — Stat Card</h3>
+        <p>Визиты — главный показатель. Прогресс-бар показывает активность. Аналитический подход.</p>
+        <div class="badge-row">
+          <span class="badge pro">Информативный</span>
+          <span class="badge pro">Уникальный в своём классе</span>
+          <span class="badge con">Прогресс-бар требует max</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>K — Tag-first</h3>
+        <p>Категория вынесена как лейбл наверх. Теги покрашены в цвет категории. Подчёркивает контекст.</p>
+        <div class="badge-row">
+          <span class="badge pro">Контекст сразу виден</span>
+          <span class="badge pro">Теги выразительны</span>
+          <span class="badge neutral">Дублирует колонку категории</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>L — Mini Square</h3>
+        <p>Квадратная плитка. Как app grid на мобильном. Хорош при большом числе колонок.</p>
+        <div class="badge-row">
+          <span class="badge pro">Очень компактный</span>
+          <span class="badge pro">Крупный фавикон</span>
+          <span class="badge con">Нет места для описания</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>M — Gradient Border</h3>
+        <p>Рамка как градиент. Тёмный фон внутри. Элегантно, не перегружено.</p>
+        <div class="badge-row">
+          <span class="badge pro">Нарядный вид</span>
+          <span class="badge pro">Не требует backdrop-filter</span>
+          <span class="badge con">Плохо работает без --cc</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>N — Sticky Note</h3>
+        <p>Загнутый уголок, подкрашенный фон — как физический стикер. Уютная, «тёплая» эстетика.</p>
+        <div class="badge-row">
+          <span class="badge pro">Запоминается</span>
+          <span class="badge pro">Цвет категории мягко виден</span>
+          <span class="badge con">Нестандартный вид</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>O — Wide Row</h3>
+        <p>Широкая горизонтальная карточка на всю ширину. Полоска + фавикон слева, мета справа.</p>
+        <div class="badge-row">
+          <span class="badge pro">Идеален для 2-3 колонок</span>
+          <span class="badge pro">Много информации</span>
+          <span class="badge con">Слишком широк для 4-5 колонок</span>
+        </div>
+      </div>
+      <div class="compare-item">
+        <h3>P — Minimal Mono</h3>
+        <p>Полностью моноспейсный. Теги через #. Терминальная эстетика для разработчиков.</p>
+        <div class="badge-row">
+          <span class="badge pro">Максимально тихий</span>
+          <span class="badge pro">Отличная плотность</span>
+          <span class="badge con">Нет фавикона</span>
+          <span class="badge con">Нишевая эстетика</span>
         </div>
       </div>
     </div>
