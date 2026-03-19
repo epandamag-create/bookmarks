@@ -12,11 +12,11 @@ window.App = (() => {
     showVisits: false,
     toolsMode: null,
     toolsResults: null,
-    toolsRunning: false,
     focusedCardId: null,
-    searchActive: false,
     collapsedCats: new Set(),
   };
+
+  let tabsScrollController = null;
 
   // ── TOAST ──
   function toast(msg, type = 'success') {
@@ -38,7 +38,6 @@ window.App = (() => {
     state.view = view;
     state.selectedIds.clear();
     if (view === 'starred') state.activeTabId = null;
-    renderNav();
     renderTabsBar();
     renderSidebar();
     renderContent();
@@ -49,7 +48,6 @@ window.App = (() => {
     state.activeTabId = tabId;
     state.view = 'dashboard';
     state.selectedIds.clear();
-    renderNav();
     renderTabsBar();
     renderSidebar();
     renderContent();
@@ -60,6 +58,7 @@ window.App = (() => {
   function renderSidebar() {
     const list = document.getElementById('sidebar-tabs-list');
     list.innerHTML = '';
+    const allBookmarks = DB.getAllBookmarks();
     DB.getTabs().forEach(tab => {
       const item = document.createElement('div');
       item.className = 'sidebar-tab-item' + (tab.id === state.activeTabId && state.view === 'dashboard' ? ' active' : '');
@@ -71,7 +70,7 @@ window.App = (() => {
       name.className = 'tab-name';
       name.textContent = tab.name;
       const catIds = new Set(DB.getCategories(tab.id).map(c => c.id));
-      const bmCount = DB.getAllBookmarks().filter(b => catIds.has(b.categoryId)).length;
+      const bmCount = allBookmarks.filter(b => catIds.has(b.categoryId)).length;
       const count = document.createElement('span');
       count.className = 'tab-bm-count';
       count.textContent = bmCount;
@@ -146,7 +145,11 @@ window.App = (() => {
       tabsList.appendChild(pill);
     });
 
-    // Scroll arrows
+    // Scroll arrows — abort previous listeners to avoid accumulation
+    if (tabsScrollController) tabsScrollController.abort();
+    tabsScrollController = new AbortController();
+    const { signal } = tabsScrollController;
+
     const leftBtn = document.getElementById('tabs-scroll-left');
     const rightBtn = document.getElementById('tabs-scroll-right');
     const container = tabsList;
@@ -155,8 +158,8 @@ window.App = (() => {
       rightBtn.style.display = container.scrollLeft < container.scrollWidth - container.clientWidth - 2 ? 'flex' : 'none';
     }
     setTimeout(updateArrows, 50);
-    container.addEventListener('scroll', updateArrows);
-    container.addEventListener('wheel', (e) => { e.preventDefault(); container.scrollLeft += e.deltaY; updateArrows(); }, { passive: false });
+    container.addEventListener('scroll', updateArrows, { signal });
+    container.addEventListener('wheel', (e) => { e.preventDefault(); container.scrollLeft += e.deltaY; updateArrows(); }, { signal, passive: false });
     leftBtn.onclick = () => { container.scrollLeft -= 120; setTimeout(updateArrows, 100); };
     rightBtn.onclick = () => { container.scrollLeft += 120; setTimeout(updateArrows, 100); };
   }
@@ -186,13 +189,6 @@ window.App = (() => {
     }
 
     // Nav active state
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.classList.toggle('active', item.dataset.view === state.view);
-    });
-  }
-
-  // ── RENDER NAV ──
-  function renderNav() {
     document.querySelectorAll('.nav-item').forEach(item => {
       item.classList.toggle('active', item.dataset.view === state.view);
     });
@@ -278,8 +274,8 @@ window.App = (() => {
 
     // Stagger entrance for columns
     if (window.Motion?.animate) {
-      const cols = grid.querySelectorAll('.category-column');
-      Motion.animate(cols, { opacity: [0, 1], y: [12, 0] }, { duration: 0.2, delay: Motion.stagger(0.04), easing: 'ease-out' });
+      const colEls = grid.querySelectorAll('.category-column');
+      Motion.animate(colEls, { opacity: [0, 1], y: [12, 0] }, { duration: 0.2, delay: Motion.stagger(0.04), easing: 'ease-out' });
     }
 
     // "Add Category" button
@@ -478,7 +474,8 @@ window.App = (() => {
     function rowHTML(bm) {
       const sel = state.selectedIds.has(bm.id) ? 'selected' : '';
       const chk = state.selectedIds.has(bm.id) ? 'checked' : '';
-      const favicon = `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(bm.url)}&sz=16" width="16" height="16" style="border-radius:2px;display:block" onerror="this.style.display='none'">`;
+      const favSrc = DB.faviconUrl(bm.url) || '';
+      const favicon = favSrc ? `<img src="${favSrc}" width="16" height="16" style="border-radius:2px;display:block" onerror="this.style.display='none'">` : `<span>${bm.favicon || '🔗'}</span>`;
       const tags = (bm.tags || []).slice(0, 4).map(t =>
         `<span class="tag-chip" data-action="filter-tag" data-tag="${t}">${t}</span>`
       ).join('');
@@ -749,7 +746,6 @@ window.App = (() => {
   async function runTool(mode, wrapper) {
     state.toolsMode = mode;
     state.toolsResults = null;
-    state.toolsRunning = true;
 
     const area = wrapper.querySelector('#tools-results-area');
     wrapper.querySelectorAll('.tool-card').forEach(c => c.classList.toggle('active', c.dataset.tool === mode));
@@ -775,7 +771,6 @@ window.App = (() => {
           if (current) current.textContent = title;
         });
         state.toolsResults = results;
-        state.toolsRunning = false;
         renderToolResults(area, mode, results);
       } catch(e) {
         area.innerHTML = `<div class="empty-state"><div class="empty-state-title">Error checking links</div><div class="empty-state-sub">${e.message}</div></div>`;
@@ -790,7 +785,6 @@ window.App = (() => {
         else if (mode === 'rare') results = DB.findRarelyVisited();
 
         state.toolsResults = results;
-        state.toolsRunning = false;
         renderToolResults(area, mode, results);
       } catch(e) {
         area.innerHTML = `<div class="empty-state"><div class="empty-state-title">Error running tool</div></div>`;
@@ -990,7 +984,6 @@ window.App = (() => {
     wrapper.querySelectorAll('.layout-btn-s').forEach(btn => {
       btn.onclick = () => {
         DB.setColumns(parseInt(btn.dataset.cols));
-        renderSettings(container);
         container.innerHTML = '';
         renderSettings(container);
         lucide.createIcons({ nodes: [container] });
@@ -1990,6 +1983,7 @@ window.App = (() => {
     renderTopbar,
     init,
   };
+
 })();
 
 // Bootstrap

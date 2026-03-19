@@ -659,7 +659,8 @@ window.Components = (() => {
         <div class="cmd-items" id="cmd-items"></div>
       </div>
     `;
-    openOverlay(overlay, modal);
+    const palette = overlay.querySelector('.cmd-palette');
+    openOverlay(overlay, palette);
     lucide.createIcons({ nodes: [overlay] });
 
     const input = overlay.querySelector('#cmd-input');

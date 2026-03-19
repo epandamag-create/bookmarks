@@ -73,7 +73,6 @@ window.DB = (() => {
       { id: uuid(), title: 'Linear', url: 'https://linear.app', description: 'The issue tracker built for high-performance teams. Fast, opinionated, beautiful.', tags: ['productivity','project-management','issues','dev'], notes: 'Switch from Jira', favicon: '📐', color: '#6366f1', createdAt: '2024-03-15T10:00:00Z', updatedAt: '2024-03-15T10:00:00Z', visitCount: 37, favorite: false, aiSummary: 'Linear is a streamlined project management tool designed for software teams.', aiTopics: ['project management', 'issues', 'workflow'], categoryId: 'cat_pm', inCatalog: false },
       { id: uuid(), title: 'Raycast', url: 'https://raycast.com', description: 'A collection of powerful productivity tools all within an extendable launcher.', tags: ['productivity','launcher','mac','tools'], notes: 'Replace Spotlight', favicon: '⚡', color: '#f59e0b', createdAt: '2024-03-20T10:00:00Z', updatedAt: '2024-03-20T10:00:00Z', visitCount: 61, favorite: true, aiSummary: 'Raycast is a blazing-fast launcher for macOS that supercharges developer productivity.', aiTopics: ['productivity', 'automation', 'launcher'], categoryId: 'cat_pm', inCatalog: false },
     ],
-    catalog: [],
     dashboardColumns: 4,
   };
 
@@ -89,7 +88,6 @@ window.DB = (() => {
       if (raw) {
         data = JSON.parse(raw);
         // Ensure arrays exist
-        if (!data.catalog) data.catalog = [];
         if (!data.categories) data.categories = [];
         if (!data.tabs) data.tabs = defaultData.tabs;
       } else {
@@ -133,7 +131,6 @@ window.DB = (() => {
       categoryId: bm.categoryId || (data.categories[0] ? data.categories[0].id : ''),
       inCatalog: bm.inCatalog || false,
     };
-    if (bm.inCatalog) data.catalog.unshift(item);
     data.bookmarks.unshift(item);
     save();
     return item;
@@ -417,6 +414,14 @@ window.DB = (() => {
   }
 
   // ── IMPORT / EXPORT ──
+  function downloadJSON(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
   function parseNetscapeHTML(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -454,31 +459,19 @@ window.DB = (() => {
   }
 
   function exportJSON() {
-    const blob = new Blob([JSON.stringify({ bookmarks: data.bookmarks, tabs: data.tabs, categories: data.categories }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `bookmarks-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
+    downloadJSON({ bookmarks: data.bookmarks, tabs: data.tabs, categories: data.categories }, `bookmarks-${new Date().toISOString().slice(0,10)}.json`);
   }
 
   function exportTabJSON(tabId) {
     const catIds = new Set(data.categories.filter(c => c.tabId === tabId).map(c => c.id));
     const tab = getTabById(tabId);
     const bms = data.bookmarks.filter(b => catIds.has(b.categoryId));
-    const blob = new Blob([JSON.stringify({ tab, bookmarks: bms }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${(tab?.name||'tab').toLowerCase().replace(/\s/g,'-')}-bookmarks.json`;
-    a.click();
+    downloadJSON({ tab, bookmarks: bms }, `${(tab?.name||'tab').toLowerCase().replace(/\s/g,'-')}-bookmarks.json`);
   }
 
   function exportSelected(ids) {
     const bms = data.bookmarks.filter(b => ids.includes(b.id));
-    const blob = new Blob([JSON.stringify({ bookmarks: bms }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `selected-bookmarks-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
+    downloadJSON({ bookmarks: bms }, `selected-bookmarks-${new Date().toISOString().slice(0,10)}.json`);
   }
 
   // Settings
