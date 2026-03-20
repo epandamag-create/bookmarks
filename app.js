@@ -14,6 +14,7 @@ window.App = (() => {
     toolsResults: null,
     focusedCardId: null,
     collapsedCats: new Set(),
+    searchQuery: '',
   };
 
   let tabsScrollController = null;
@@ -200,7 +201,8 @@ window.App = (() => {
     content.innerHTML = '';
     Components.BulkActionsBar(state.selectedIds);
 
-    switch (state.view) {
+    if (state.searchQuery.length >= 2) { renderSearchResults(content); }
+    else switch (state.view) {
       case 'dashboard': renderDashboard(content); break;
       case 'list': renderList(content); break;
       case 'starred': renderStarred(content); break;
@@ -216,6 +218,29 @@ window.App = (() => {
     if (window.Motion?.animate) {
       Motion.animate(content, { opacity: [0, 1], y: [6, 0] }, { duration: 0.18, easing: 'ease-out' });
     }
+  }
+
+  // ── SEARCH RESULTS ──
+  function renderSearchResults(container) {
+    const found = DB.search(state.searchQuery, true);
+    const wrap = document.createElement('div');
+    wrap.className = 'search-results-view';
+
+    const header = document.createElement('div');
+    header.className = 'search-results-header';
+    header.textContent = found.length
+      ? `Результаты поиска: «${state.searchQuery}» — ${found.length} найдено`
+      : `Ничего не найдено по запросу «${state.searchQuery}»`;
+    wrap.appendChild(header);
+
+    if (found.length) {
+      const grid = document.createElement('div');
+      grid.className = 'search-results-grid';
+      found.forEach(({ item }) => grid.appendChild(Components.BookmarkCard(item)));
+      wrap.appendChild(grid);
+    }
+
+    container.appendChild(wrap);
   }
 
   // ── DASHBOARD ──
@@ -1054,69 +1079,35 @@ window.App = (() => {
   }
 
   // ── SEARCH ──
-  function attachSearch(input, results, clearBtn) {
+  function attachSearch(input, _results, clearBtn) {
     let debounceTimer = null;
-    let focusedIdx = -1;
 
     const updateClear = () => {
       if (clearBtn) clearBtn.classList.toggle('visible', input.value.length > 0);
+    };
+
+    const clearSearch = () => {
+      input.value = '';
+      state.searchQuery = '';
+      updateClear();
+      renderContent();
     };
 
     input.addEventListener('input', () => {
       updateClear();
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        const q = input.value.trim();
-        if (!q || q.length < 2) { results.classList.add('hidden'); return; }
-        const found = DB.search(q);
-        if (!found.length) {
-          results.innerHTML = '<div class="search-results-empty">No results found</div>';
-          results.classList.remove('hidden');
-          return;
-        }
-        results.innerHTML = '';
-        focusedIdx = -1;
-        found.slice(0, 10).forEach(({ item, matchedFields }) => {
-          const row = document.createElement('div');
-          row.className = 'search-result-item';
-          const fav = document.createElement('span');
-          fav.className = 'sr-favicon';
-          fav.textContent = item.favicon || '🔗';
-          const title = document.createElement('span');
-          title.className = 'sr-title';
-          title.textContent = item.title;
-          const match = document.createElement('span');
-          match.className = 'sr-match';
-          match.textContent = matchedFields[0] || 'title';
-          row.appendChild(fav); row.appendChild(title); row.appendChild(match);
-          row.onclick = () => {
-            Components.FocusModal(item.id);
-          };
-          results.appendChild(row);
-        });
-        results.classList.remove('hidden');
+        state.searchQuery = input.value.trim();
+        renderContent();
       }, 150);
     });
 
     if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        input.value = '';
-        results.classList.add('hidden');
-        updateClear();
-        input.focus();
-      });
+      clearBtn.addEventListener('click', () => { clearSearch(); input.focus(); });
     }
 
     input.addEventListener('keydown', (e) => {
-      const items = results.querySelectorAll('.search-result-item');
-      if (e.key === 'ArrowDown') { e.preventDefault(); focusedIdx = Math.min(focusedIdx + 1, items.length - 1); items.forEach((r, i) => r.classList.toggle('focused', i === focusedIdx)); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIdx = Math.max(focusedIdx - 1, 0); items.forEach((r, i) => r.classList.toggle('focused', i === focusedIdx)); }
-      else if (e.key === 'Enter' && focusedIdx >= 0) { items[focusedIdx]?.click(); }
-      else if (e.key === 'Escape') { results.classList.add('hidden'); input.blur(); }
-    });
-
-    input.addEventListener('focus', () => {
-      if (input.value.trim().length >= 2) results.classList.remove('hidden');
+      if (e.key === 'Escape') { clearSearch(); input.blur(); }
     });
   }
 
