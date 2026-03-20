@@ -449,17 +449,15 @@ window.DB = (() => {
   }
 
   function importFromNetscape(folders, targetCategoryId) {
-    const needsFetch = [];
     let count = 0;
     for (const [folder, items] of Object.entries(folders)) {
-      for (const { url, title, needsFetch: nf } of items) {
-        const bm = addBookmark({ url, title, categoryId: targetCategoryId, favicon: faviconEmoji(url) });
-        if (nf) needsFetch.push({ id: bm.id, url });
+      for (const { url, title } of items) {
+        addBookmark({ url, title, categoryId: targetCategoryId, favicon: faviconEmoji(url) });
         count++;
       }
     }
     rebuildFuse();
-    return { count, needsFetch };
+    return count;
   }
 
   function exportJSON() {

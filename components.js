@@ -1058,37 +1058,15 @@ window.Components = (() => {
     modal.querySelector('#import-confirm').onclick = () => {
       const catId = modal.querySelector('#import-cat').value;
       let count = 0;
-      let needsFetch = [];
       if (importMode === 'xlsx' && parsedXLSX) {
         count = DB.importFromXLSX(parsedXLSX, catId);
       } else if (importMode === 'html' && parsedFolders) {
-        ({ count, needsFetch } = DB.importFromNetscape(parsedFolders, catId));
+        count = DB.importFromNetscape(parsedFolders, catId);
       }
       DB.rebuildFuse();
       App.toast(`Imported ${count} bookmarks`, 'success');
       close();
       App.render();
-
-      // Background title fetch for bookmarks without a real title
-      if (needsFetch.length) {
-        App.toast(`Fetching titles for ${needsFetch.length} bookmarks…`, 'info');
-        (async () => {
-          let updated = 0;
-          for (const { id, url } of needsFetch) {
-            try {
-              const html = await fetchPageHTML(url);
-              if (html) {
-                const m = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-                const title = m?.[1]?.trim().slice(0, 120);
-                if (title) { DB.updateBookmark(id, { title }); updated++; }
-              }
-            } catch { /* skip */ }
-          }
-          DB.rebuildFuse();
-          App.render();
-          App.toast(updated ? `Updated ${updated} titles` : 'Could not fetch titles (proxies unavailable)', updated ? 'success' : 'error');
-        })();
-      }
     };
 
     const escH = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escH); } };
