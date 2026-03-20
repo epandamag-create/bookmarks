@@ -434,10 +434,11 @@ window.DB = (() => {
         else if (child.nodeName === 'A') {
           const url = child.getAttribute('href');
           const rawTitle = child.textContent.trim();
-          const title = (rawTitle && rawTitle !== url) ? rawTitle : domainOf(url);
+          const hasTitle = rawTitle && rawTitle !== url;
+          const title = hasTitle ? rawTitle : domainOf(url);
           if (url && url.startsWith('http')) {
             if (!folders[current]) folders[current] = [];
-            folders[current].push({ url, title });
+            folders[current].push({ url, title, needsFetch: !hasTitle });
           }
         }
         if (child.childNodes.length) walk(child);
@@ -448,15 +449,17 @@ window.DB = (() => {
   }
 
   function importFromNetscape(folders, targetCategoryId) {
+    const needsFetch = [];
     let count = 0;
     for (const [folder, items] of Object.entries(folders)) {
-      for (const { url, title } of items) {
-        addBookmark({ url, title, categoryId: targetCategoryId, favicon: faviconEmoji(url) });
+      for (const { url, title, needsFetch: nf } of items) {
+        const bm = addBookmark({ url, title, categoryId: targetCategoryId, favicon: faviconEmoji(url) });
+        if (nf) needsFetch.push({ id: bm.id, url });
         count++;
       }
     }
     rebuildFuse();
-    return count;
+    return { count, needsFetch };
   }
 
   function exportJSON() {

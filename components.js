@@ -5,6 +5,25 @@
 
 window.Components = (() => {
 
+  // ── SHARED FETCH HELPER ──
+  async function fetchPageHTML(targetUrl) {
+    const proxies = [
+      u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+      u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    ];
+    for (const proxy of proxies) {
+      try {
+        const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) continue;
+        const ct = res.headers.get('content-type') || '';
+        const html = ct.includes('json') ? ((await res.json()).contents || '') : await res.text();
+        if (html.length > 200) return html;
+      } catch { continue; }
+    }
+    return '';
+  }
+
   // ── MOTION HELPERS ──
   function openOverlay(overlay, modal) {
     overlay.classList.remove('hidden');
@@ -403,29 +422,6 @@ window.Components = (() => {
       titleInput.value = titleInput.value || DB.domainOf(url);
       if (descStatus) descStatus.textContent = '⏳ Fetching...';
 
-      async function fetchPageHTML(targetUrl) {
-        const proxies = [
-          u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-          u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-          u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-        ];
-        for (const proxy of proxies) {
-          try {
-            const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
-            if (!res.ok) continue;
-            const ct = res.headers.get('content-type') || '';
-            if (ct.includes('json')) {
-              const j = await res.json();
-              const html = j.contents || j.data || '';
-              if (html.length > 200) return html;
-            } else {
-              const html = await res.text();
-              if (html.length > 200) return html;
-            }
-          } catch { continue; }
-        }
-        return '';
-      }
 
       try {
         const html = await fetchPageHTML(url);
@@ -1063,15 +1059,34 @@ window.Components = (() => {
     modal.querySelector('#import-confirm').onclick = () => {
       const catId = modal.querySelector('#import-cat').value;
       let count = 0;
+      let needsFetch = [];
       if (importMode === 'xlsx' && parsedXLSX) {
         count = DB.importFromXLSX(parsedXLSX, catId);
       } else if (importMode === 'html' && parsedFolders) {
-        count = DB.importFromNetscape(parsedFolders, catId);
+        ({ count, needsFetch } = DB.importFromNetscape(parsedFolders, catId));
       }
       DB.rebuildFuse();
       App.toast(`Imported ${count} bookmarks`, 'success');
       close();
       App.render();
+
+      // Background title fetch for bookmarks without a real title
+      if (needsFetch.length) {
+        (async () => {
+          let updated = 0;
+          for (const { id, url } of needsFetch) {
+            try {
+              const html = await fetchPageHTML(url);
+              if (html) {
+                const m = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+                const title = m?.[1]?.trim().slice(0, 120);
+                if (title) { DB.updateBookmark(id, { title }); updated++; }
+              }
+            } catch { /* skip */ }
+          }
+          if (updated) { DB.rebuildFuse(); App.render(); }
+        })();
+      }
     };
 
     const escH = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escH); } };
