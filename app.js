@@ -234,11 +234,9 @@ window.App = (() => {
     wrap.appendChild(header);
 
     if (found.length) {
-      const grid = document.createElement('div');
       const cols = DB.getColumns();
-      grid.className = 'dashboard-grid';
-      grid.dataset.cols = cols;
-      grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+      const grid = document.createElement('div');
+      grid.style.cssText = `display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px;align-items:start;width:100%;`;
       found.forEach(({ item }) => grid.appendChild(Components.BookmarkCard(item)));
       wrap.appendChild(grid);
     }
