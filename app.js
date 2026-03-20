@@ -525,7 +525,7 @@ window.App = (() => {
       return `<tr data-id="${bm.id}" class="${sel}">
         <td><input type="checkbox" ${chk} data-action="check"></td>
         <td class="table-favicon">${favicon}</td>
-        <td><span class="table-title" data-action="focus" title="${bm.url}">${bm.title}</span></td>
+        <td><span class="table-title" data-action="focus" title="${bm.url}">${bm.title || bm.url}</span></td>
         <td class="table-tags">${tags}</td>
         <td class="table-date">${date}</td>
         ${visitsCol}

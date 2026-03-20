@@ -252,7 +252,7 @@ body { display: flex; }
 .bookmark-table tr.selected td { background: rgba(99,102,241,0.06); }
 
 .table-favicon { width: 16px; height: 16px; font-size: 13px; }
-.table-title { font-size: 13px; font-weight: 500; color: var(--text-primary); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.table-title { display: block; font-size: 13px; font-weight: 500; color: var(--text-primary); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .table-title:hover { color: var(--accent); }
 .table-tags { display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden; align-items: center; }
 .table-date { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; white-space: nowrap; }
