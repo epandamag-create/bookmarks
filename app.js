@@ -495,10 +495,10 @@ window.App = (() => {
     checkAll.appendChild(chk);
     headRow.appendChild(checkAll);
     const favTh = document.createElement('th'); favTh.textContent = 'Fav'; favTh.style.width = '36px'; headRow.appendChild(favTh);
-    headRow.appendChild(sortHeader('title', 'Title'));
-    const tagsTh = document.createElement('th'); tagsTh.textContent = 'Tags'; headRow.appendChild(tagsTh);
-    headRow.appendChild(sortHeader('createdAt', 'Date'));
-    if (state.showVisits) headRow.appendChild(sortHeader('visitCount', 'Visits'));
+    const titleTh = sortHeader('title', 'Title'); headRow.appendChild(titleTh);
+    const tagsTh = document.createElement('th'); tagsTh.textContent = 'Tags'; tagsTh.style.width = '170px'; headRow.appendChild(tagsTh);
+    const dateTh = sortHeader('createdAt', 'Date'); dateTh.style.width = '100px'; headRow.appendChild(dateTh);
+    if (state.showVisits) { const vTh = sortHeader('visitCount', 'Visits'); vTh.style.width = '70px'; headRow.appendChild(vTh); }
     const actionsTh = document.createElement('th'); actionsTh.style.width = '80px'; headRow.appendChild(actionsTh);
     thead.appendChild(headRow);
     table.appendChild(thead);
