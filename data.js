@@ -434,11 +434,12 @@ window.DB = (() => {
         else if (child.nodeName === 'A') {
           const url = child.getAttribute('href');
           const rawTitle = child.textContent.trim();
-          const hasTitle = rawTitle && !/^https?:\/\//i.test(rawTitle);
-          const title = hasTitle ? rawTitle : domainOf(url);
+          const isUrl = !rawTitle || /^https?:\/\//i.test(rawTitle) || rawTitle === url;
+          const title = isUrl ? domainOf(url) : rawTitle;
+          console.log('[import]', { url, rawTitle, isUrl, title });
           if (url && url.startsWith('http')) {
             if (!folders[current]) folders[current] = [];
-            folders[current].push({ url, title, needsFetch: !hasTitle });
+            folders[current].push({ url, title });
           }
         }
         if (child.childNodes.length) walk(child);
@@ -487,7 +488,7 @@ window.DB = (() => {
         const catName = String(r.Category || '').trim() || 'Imported';
         categoryNames.add(catName);
         return {
-          title:        String(r.Title || r.URL).trim(),
+          title:        (String(r.Title || '').trim()) || domainOf(String(r.URL).trim()),
           url:          String(r.URL).trim(),
           categoryName: catName,
           tags:         r.Tags ? String(r.Tags).split(',').map(t => t.trim()).filter(Boolean) : [],
