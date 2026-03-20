@@ -225,9 +225,10 @@ body { display: flex; }
 .card-fav-icon { color: var(--warning); font-size: 12px; }
 
 /* ── LIST VIEW ── */
+/* content becomes flex column → list-view fills it → list-scroll is the one scroller */
 .content.view-list { overflow: hidden; display: flex; flex-direction: column; }
-.list-view { padding: 20px; }
-.content.view-list .list-view { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; box-sizing: border-box; }
+.content.view-list .list-view { flex: 1; min-height: 0; }
+.list-view { display: flex; flex-direction: column; padding: 20px 20px 0; box-sizing: border-box; }
 .list-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; flex-shrink: 0; }
 .list-toolbar .tag-filters { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
 .tag-filter-pill {
@@ -239,13 +240,26 @@ body { display: flex; }
 .catalog-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
 .catalog-toggle input { accent-color: var(--accent); cursor: pointer; }
 
+/* list-scroll: sole scroll container — no siblings compete with it */
+.list-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: auto; }
+
+/* Table: border-separate keeps sticky thead working in all browsers */
 .bookmark-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+/* column widths via colgroup classes — locked, never jump */
+.col-check  { width: 36px; }
+.col-fav    { width: 36px; }
+.col-title  { /* auto — takes remaining space */ }
+.col-tags   { width: 160px; }
+.col-date   { width: 90px; }
+.col-visits { width: 70px; }
+.col-actions{ width: 80px; }
+/* sticky thead works because list-scroll is the overflow container */
 .bookmark-table thead { position: sticky; top: 0; z-index: 2; }
 .bookmark-table th {
   text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600;
   color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px;
-  background: var(--bg-surface); border-bottom: 1px solid var(--border); cursor: pointer; white-space: nowrap;
-  user-select: none;
+  background: var(--bg-surface); border-bottom: 1px solid var(--border);
+  cursor: pointer; white-space: nowrap; user-select: none;
 }
 .bookmark-table th:hover { color: var(--text-secondary); }
 .bookmark-table th.sorted { color: var(--accent); }
@@ -859,8 +873,7 @@ input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-colo
 .notes-tab.active { opacity: 1; background: var(--accent-bg); color: var(--accent); }
 #focus-notes-ta { width: 100%; resize: vertical; }
 
-/* ── CLUSTERIZE ── */
-#clusterize-scroll .bookmark-table { width: 100%; }
+
 
 /* ── TOOL PROGRESS BAR ── */
 .tool-progress-label { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
