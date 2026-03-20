@@ -1090,9 +1090,6 @@ window.App = (() => {
           match.textContent = matchedFields[0] || 'title';
           row.appendChild(fav); row.appendChild(title); row.appendChild(match);
           row.onclick = () => {
-            results.classList.add('hidden');
-            input.value = '';
-            updateClear();
             Components.FocusModal(item.id);
           };
           results.appendChild(row);
@@ -1115,10 +1112,12 @@ window.App = (() => {
       if (e.key === 'ArrowDown') { e.preventDefault(); focusedIdx = Math.min(focusedIdx + 1, items.length - 1); items.forEach((r, i) => r.classList.toggle('focused', i === focusedIdx)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIdx = Math.max(focusedIdx - 1, 0); items.forEach((r, i) => r.classList.toggle('focused', i === focusedIdx)); }
       else if (e.key === 'Enter' && focusedIdx >= 0) { items[focusedIdx]?.click(); }
-      else if (e.key === 'Escape') { results.classList.add('hidden'); input.value = ''; updateClear(); input.blur(); }
+      else if (e.key === 'Escape') { results.classList.add('hidden'); input.blur(); }
     });
 
-    document.addEventListener('click', (e) => { if (!e.target.closest('.search-wrapper')) results.classList.add('hidden'); });
+    input.addEventListener('focus', () => {
+      if (input.value.trim().length >= 2) results.classList.remove('hidden');
+    });
   }
 
   function initSearch() {
