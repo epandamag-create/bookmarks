@@ -433,7 +433,8 @@ window.DB = (() => {
         if (child.nodeName === 'H3') { current = child.textContent; }
         else if (child.nodeName === 'A') {
           const url = child.getAttribute('href');
-          const title = child.textContent.trim();
+          const rawTitle = child.textContent.trim();
+          const title = (rawTitle && rawTitle !== url) ? rawTitle : domainOf(url);
           if (url && url.startsWith('http')) {
             if (!folders[current]) folders[current] = [];
             folders[current].push({ url, title });
