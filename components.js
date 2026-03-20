@@ -1071,6 +1071,7 @@ window.Components = (() => {
 
       // Background title fetch for bookmarks without a real title
       if (needsFetch.length) {
+        App.toast(`Fetching titles for ${needsFetch.length} bookmarks…`, 'info');
         (async () => {
           let updated = 0;
           for (const { id, url } of needsFetch) {
@@ -1083,7 +1084,9 @@ window.Components = (() => {
               }
             } catch { /* skip */ }
           }
-          if (updated) { DB.rebuildFuse(); App.render(); }
+          DB.rebuildFuse();
+          App.render();
+          App.toast(updated ? `Updated ${updated} titles` : 'Could not fetch titles (proxies unavailable)', updated ? 'success' : 'error');
         })();
       }
     };
