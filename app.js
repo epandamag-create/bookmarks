@@ -235,8 +235,10 @@ window.App = (() => {
 
     if (found.length) {
       const grid = document.createElement('div');
+      const cols = DB.getColumns();
       grid.className = 'dashboard-grid';
-      grid.dataset.cols = DB.getColumns();
+      grid.dataset.cols = cols;
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
       found.forEach(({ item }) => grid.appendChild(Components.BookmarkCard(item)));
       wrap.appendChild(grid);
     }
