@@ -38,6 +38,11 @@ window.App = (() => {
   function switchView(view) {
     state.view = view;
     state.selectedIds.clear();
+    state.searchQuery = '';
+    const si = document.getElementById('search-input');
+    const mi = document.getElementById('mobile-search-input');
+    if (si) { si.value = ''; si.nextElementSibling?.classList.remove('visible'); }
+    if (mi) { mi.value = ''; mi.nextElementSibling?.classList.remove('visible'); }
     if (view === 'starred') state.activeTabId = null;
     renderTabsBar();
     renderSidebar();
@@ -49,6 +54,11 @@ window.App = (() => {
     state.activeTabId = tabId;
     state.view = 'dashboard';
     state.selectedIds.clear();
+    state.searchQuery = '';
+    const si = document.getElementById('search-input');
+    const mi = document.getElementById('mobile-search-input');
+    if (si) { si.value = ''; si.nextElementSibling?.classList.remove('visible'); }
+    if (mi) { mi.value = ''; mi.nextElementSibling?.classList.remove('visible'); }
     renderTabsBar();
     renderSidebar();
     renderContent();
