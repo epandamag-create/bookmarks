@@ -209,6 +209,7 @@ window.App = (() => {
   function renderContent() {
     const content = document.getElementById('content');
     content.innerHTML = '';
+    content.classList.toggle('view-list', !state.searchQuery && state.view === 'list');
     Components.BulkActionsBar(state.selectedIds);
 
     if (state.searchQuery.length >= 2) { renderSearchResults(content); }
@@ -545,8 +546,9 @@ window.App = (() => {
       table.appendChild(tbody);
       const scrollEl = document.createElement('div');
       scrollEl.id = 'clusterize-scroll';
-      scrollEl.style.cssText = 'overflow-y:auto;flex:1;min-height:0';
+      scrollEl.style.cssText = 'overflow-y:auto;overflow-x:auto;flex:1;min-height:0';
       scrollEl.appendChild(table);
+      tableWrapper.style.cssText = 'flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden';
       tableWrapper.appendChild(scrollEl);
       wrapper.appendChild(tableWrapper);
       container.appendChild(wrapper);
