@@ -434,7 +434,7 @@ window.DB = (() => {
         else if (child.nodeName === 'A') {
           const url = child.getAttribute('href');
           const rawTitle = child.textContent.trim();
-          const hasTitle = rawTitle && rawTitle !== url;
+          const hasTitle = rawTitle && !rawTitle.startsWith('http');
           const title = hasTitle ? rawTitle : domainOf(url);
           if (url && url.startsWith('http')) {
             if (!folders[current]) folders[current] = [];
