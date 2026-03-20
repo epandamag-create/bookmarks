@@ -8,16 +8,15 @@ window.Components = (() => {
   // ── SHARED FETCH HELPER ──
   async function fetchPageHTML(targetUrl) {
     const proxies = [
-      u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
       u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
       u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      u => `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
     ];
     for (const proxy of proxies) {
       try {
         const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
         if (!res.ok) continue;
-        const ct = res.headers.get('content-type') || '';
-        const html = ct.includes('json') ? ((await res.json()).contents || '') : await res.text();
+        const html = await res.text();
         if (html.length > 200) return html;
       } catch { continue; }
     }
@@ -1133,6 +1132,6 @@ window.Components = (() => {
     CommandPalette, BulkActionsBar, GraphView, ShareModal, ImportModal,
     openModal: openOverlay, closeModal: closeOverlay,
     TagInput, ColorPicker, showContextMenu, hideContextMenu,
-    icon, el, iconBtn, faviconEl, extractMetaContent,
+    icon, el, iconBtn, faviconEl, extractMetaContent, fetchPageHTML,
   };
 })();

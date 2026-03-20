@@ -793,7 +793,7 @@ window.App = (() => {
           <div class="tool-progress-label" id="tool-progress-label">Checking 0 / ${total}...</div>
           <div class="tool-progress-bar"><div class="tool-progress-fill" id="tool-progress-fill" style="width:0%"></div></div>
           <div class="tool-progress-current" id="tool-progress-current"></div>
-          <div style="font-size:11px;color:var(--text-3);margin-top:8px">Checking via allorigins.win proxy · 404 and 5xx = dead · timeout = unreachable</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:8px">Checking via proxy · 404 and 5xx = dead · timeout = unreachable</div>
         </div>`;
 
       try {
@@ -1856,29 +1856,7 @@ window.App = (() => {
       // Fetch title + description + tags in parallel
       const canFetch = location.protocol !== 'file:';
 
-      async function fetchPageHTML(targetUrl) {
-        const proxies = [
-          u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-          u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-          u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-        ];
-        for (const proxy of proxies) {
-          try {
-            const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
-            if (!res.ok) continue;
-            const ct = res.headers.get('content-type') || '';
-            if (ct.includes('json')) {
-              const j = await res.json();
-              const html = j.contents || j.data || '';
-              if (html.length > 200) return html;
-            } else {
-              const html = await res.text();
-              if (html.length > 200) return html;
-            }
-          } catch { continue; }
-        }
-        return '';
-      }
+      const fetchPageHTML = Components.fetchPageHTML;
 
       Promise.all([
         canFetch
