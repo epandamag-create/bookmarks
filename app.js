@@ -235,7 +235,8 @@ window.App = (() => {
 
     if (found.length) {
       const grid = document.createElement('div');
-      grid.className = 'search-results-grid';
+      grid.className = 'dashboard-grid';
+      grid.dataset.cols = DB.getColumns();
       found.forEach(({ item }) => grid.appendChild(Components.BookmarkCard(item)));
       wrap.appendChild(grid);
     }

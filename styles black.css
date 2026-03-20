@@ -698,4 +698,3 @@ body:has(.sidebar.collapsed) .quick-add-bar { left: 48px; }
 /* ── SEARCH RESULTS VIEW ── */
 .search-results-view { padding: 20px; }
 .search-results-header { font-size: 13px; color: var(--text-3); margin-bottom: 16px; }
-.search-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
