@@ -389,7 +389,7 @@ window.App = (() => {
     tagFilters.appendChild(catalogBtn);
 
     const allBtn = document.createElement('span');
-    allBtn.className = 'tag-filter-pill' + (!state.listTagFilter ? ' active' : '');
+    allBtn.className = 'tag-filter-pill';
     allBtn.textContent = 'All';
     allBtn.onclick = () => { state.listTagFilter = null; renderContent(); };
     tagFilters.appendChild(allBtn);
