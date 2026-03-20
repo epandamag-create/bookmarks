@@ -539,16 +539,14 @@ window.App = (() => {
 
     // Use Clusterize for large lists, plain render for small
     let clusterize = null;
-    const scrollEl = document.createElement('div');
-    scrollEl.id = 'clusterize-scroll';
-    scrollEl.style.cssText = 'overflow-y:auto;flex:1;min-height:0';
-    const innerTable = document.createElement('table');
-    innerTable.className = 'bookmark-table';
-    innerTable.appendChild(tbody);
-    scrollEl.appendChild(innerTable);
 
     if (window.Clusterize && filtered.length > 50) {
-      tableWrapper.appendChild(table);
+      // Single table: thead + tbody together inside scroll container → columns stay aligned
+      table.appendChild(tbody);
+      const scrollEl = document.createElement('div');
+      scrollEl.id = 'clusterize-scroll';
+      scrollEl.style.cssText = 'overflow-y:auto;flex:1;min-height:0';
+      scrollEl.appendChild(table);
       tableWrapper.appendChild(scrollEl);
       wrapper.appendChild(tableWrapper);
       container.appendChild(wrapper);

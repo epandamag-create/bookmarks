@@ -254,7 +254,7 @@ body { display: flex; }
 .catalog-toggle input { accent-color: var(--accent); cursor: pointer; }
 
 .bookmark-table { width: 100%; border-collapse: collapse; }
-.bookmark-table th { text-align: left; padding: 6px 10px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); cursor: pointer; white-space: nowrap; user-select: none; }
+.bookmark-table th { text-align: left; padding: 6px 10px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); cursor: pointer; white-space: nowrap; user-select: none; position: sticky; top: 0; background: var(--bg-0); z-index: 2; }
 .bookmark-table th:hover { color: var(--text-2); }
 .bookmark-table th.sorted { color: var(--accent); }
 .bookmark-table th .sort-arrow { margin-left: 3px; font-size: 9px; }
