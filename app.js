@@ -548,6 +548,7 @@ window.App = (() => {
     scrollEl.appendChild(innerTable);
 
     if (window.Clusterize && filtered.length > 50) {
+      tableWrapper.appendChild(table);
       tableWrapper.appendChild(scrollEl);
       wrapper.appendChild(tableWrapper);
       container.appendChild(wrapper);
