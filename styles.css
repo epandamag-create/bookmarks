@@ -249,7 +249,7 @@ body { display: flex; }
 .col-check  { width: 36px; }
 .col-fav    { width: 36px; }
 .col-title  { /* auto — takes remaining space */ }
-.col-tags   { width: 160px; }
+.col-tags   { width: 260px; }
 .col-date   { width: 90px; }
 .col-visits { width: 70px; }
 .col-actions{ width: 80px; }

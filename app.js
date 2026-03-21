@@ -475,7 +475,7 @@ window.App = (() => {
     };
     const thCheck = document.createElement('th'); thCheck.appendChild(chkAll);
     const thFav = document.createElement('th'); thFav.textContent = 'Fav';
-    const thTags = document.createElement('th'); thTags.textContent = 'Tags'; thTags.style.width = '28%';
+    const thTags = document.createElement('th'); thTags.textContent = 'Tags';
     const thActions = document.createElement('th');
 
     const headRow = document.createElement('tr');
