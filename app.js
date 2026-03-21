@@ -454,13 +454,13 @@ window.App = (() => {
 
     // ── Cards view ──
     if (state.listLayout === 'cards') {
+      const scrollEl = document.createElement('div');
+      scrollEl.className = 'list-scroll';
       const grid = document.createElement('div');
       grid.className = 'list-cards-grid';
-      filtered.forEach(bm => {
-        const card = Components.BookmarkCard(bm);
-        grid.appendChild(card);
-      });
-      wrapper.appendChild(grid);
+      filtered.forEach(bm => grid.appendChild(Components.BookmarkCard(bm)));
+      scrollEl.appendChild(grid);
+      wrapper.appendChild(scrollEl);
       container.appendChild(wrapper);
       lucide.createIcons({ nodes: [wrapper] });
       return;

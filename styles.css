@@ -242,7 +242,7 @@ body { display: flex; }
 
 /* list-scroll: sole scroll container — no siblings compete with it */
 .list-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: auto; }
-.list-cards-grid { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; }
+.list-cards-grid { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 12px 0; }
 .list-layout-toggle { display: flex; gap: 2px; }
 .list-layout-toggle .icon-btn.active { background: var(--accent); color: #fff; }
 
