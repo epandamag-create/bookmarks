@@ -7,6 +7,7 @@ window.App = (() => {
     activeTabId: null,
     selectedIds: new Set(),
     listSort: { field: 'createdAt', dir: 'desc' },
+    listLayout: 'table',
     listTagFilter: null,
     showCatalog: false,
     showVisits: false,
@@ -417,9 +418,25 @@ window.App = (() => {
       setTimeout(() => document.addEventListener('click', close), 0);
     };
 
+    const layoutToggle = document.createElement('div');
+    layoutToggle.className = 'list-layout-toggle';
+    const tableBtn = document.createElement('button');
+    tableBtn.className = 'icon-btn' + (state.listLayout === 'table' ? ' active' : '');
+    tableBtn.title = 'Table view';
+    tableBtn.innerHTML = '<i data-lucide="list"></i>';
+    tableBtn.onclick = () => { state.listLayout = 'table'; renderContent(); };
+    const cardsBtn = document.createElement('button');
+    cardsBtn.className = 'icon-btn' + (state.listLayout === 'cards' ? ' active' : '');
+    cardsBtn.title = 'Cards view';
+    cardsBtn.innerHTML = '<i data-lucide="layout-grid"></i>';
+    cardsBtn.onclick = () => { state.listLayout = 'cards'; renderContent(); };
+    layoutToggle.appendChild(tableBtn);
+    layoutToggle.appendChild(cardsBtn);
+
     const toolbar = document.createElement('div');
     toolbar.className = 'list-toolbar';
     toolbar.appendChild(tagFilters);
+    toolbar.appendChild(layoutToggle);
     toolbar.appendChild(configBtn);
     wrapper.appendChild(toolbar);
 
@@ -430,6 +447,20 @@ window.App = (() => {
       emptyDiv.innerHTML = `<div class="empty-state"><div class="empty-state-icon">${state.showCatalog ? '📥' : '🔖'}</div><div class="empty-state-title">${state.showCatalog ? 'Catalog is empty' : 'No bookmarks yet'}</div><div class="empty-state-sub">${state.showCatalog ? 'Move bookmarks here to archive them' : 'Save your first link to get started'}</div>${esBtn}</div>`;
       emptyDiv.querySelector('#es-add-bm')?.addEventListener('click', () => Components.BookmarkFormModal());
       wrapper.appendChild(emptyDiv);
+      container.appendChild(wrapper);
+      lucide.createIcons({ nodes: [wrapper] });
+      return;
+    }
+
+    // ── Cards view ──
+    if (state.listLayout === 'cards') {
+      const grid = document.createElement('div');
+      grid.className = 'list-cards-grid';
+      filtered.forEach(bm => {
+        const card = Components.BookmarkCard(bm);
+        grid.appendChild(card);
+      });
+      wrapper.appendChild(grid);
       container.appendChild(wrapper);
       lucide.createIcons({ nodes: [wrapper] });
       return;

@@ -256,6 +256,9 @@ body { display: flex; }
 .catalog-toggle input { accent-color: var(--accent); cursor: pointer; }
 
 .list-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: auto; }
+.list-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; padding: 10px 0; }
+.list-layout-toggle { display: flex; gap: 2px; }
+.list-layout-toggle .icon-btn.active { background: var(--accent); color: #fff; }
 
 .bookmark-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .col-check  { width: 36px; }
