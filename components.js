@@ -2,8 +2,14 @@
 // v1.1 — added: real favicons via Google favicon service with emoji fallback
 // v1.2 — added: collapse chevron on category header, header click to collapse
 // v1.3 — added: Motion One animations, Tagify tags, Marked.js notes
+// v1.4 — added: BookmarkCard DOM element cache to prevent favicon flickering on re-render
 
 window.Components = (() => {
+
+  // Cache of rendered card elements: bmId → { fingerprint, element }
+  // Fingerprint covers all fields that affect card appearance.
+  // Reusing the same <img> element avoids favicon flicker on every App.render().
+  const _cardCache = new Map();
 
   // ── SHARED FETCH HELPER ──
   async function fetchPageHTML(targetUrl) {
@@ -126,6 +132,10 @@ window.Components = (() => {
   // ── BOOKMARK CARD ──
   function BookmarkCard(bm) {
     const cat = DB.getCategoryById(bm.categoryId);
+    const fingerprint = `${bm.updatedAt}|${cat?.color || ''}`;
+    const cached = _cardCache.get(bm.id);
+    if (cached && cached.fingerprint === fingerprint) return cached.element;
+
     const card = el('div', 'bookmark-card');
     card.dataset.id = bm.id;
     card.style.setProperty('--card-color', bm.color || (cat ? cat.color : 'transparent'));
@@ -187,6 +197,7 @@ window.Components = (() => {
     meta.appendChild(visits);
     card.appendChild(meta);
 
+    _cardCache.set(bm.id, { fingerprint, element: card });
     return card;
   }
 

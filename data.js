@@ -1,5 +1,6 @@
 // v1.0 — data layer: mock data, localStorage, CRUD, Fuse search, AI simulation
 // v1.1 — added: faviconUrl() for real site icons via Google favicon service
+// v1.2 — added: faviconUrl() result cache to avoid repeated URL parsing
 
 window.DB = (() => {
   const STORAGE_KEY = 'bookmark_os_v1';
@@ -14,11 +15,16 @@ window.DB = (() => {
     try { return new URL(url).hostname.replace('www.', ''); } catch { return url; }
   }
 
+  const _faviconUrlCache = new Map();
   function faviconUrl(url) {
+    if (_faviconUrlCache.has(url)) return _faviconUrlCache.get(url);
+    let result = null;
     try {
       const domain = new URL(url).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-    } catch { return null; }
+      result = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    } catch { /* keep null */ }
+    _faviconUrlCache.set(url, result);
+    return result;
   }
 
   function faviconEmoji(url) {
