@@ -210,7 +210,7 @@ window.App = (() => {
   function renderContent() {
     const content = document.getElementById('content');
     content.innerHTML = '';
-    content.classList.toggle('view-list', !state.searchQuery && state.view === 'list');
+    content.classList.toggle('view-list', !state.searchQuery && state.view === 'list' && state.listLayout === 'table');
     Components.BulkActionsBar(state.selectedIds);
 
     if (state.searchQuery.length >= 2) { renderSearchResults(content); }
@@ -454,15 +454,11 @@ window.App = (() => {
 
     // ── Cards view ──
     if (state.listLayout === 'cards') {
-      const scrollEl = document.createElement('div');
-      scrollEl.className = 'list-scroll';
       const grid = document.createElement('div');
       grid.className = 'list-cards-grid';
       filtered.forEach(bm => grid.appendChild(Components.BookmarkCard(bm)));
-      scrollEl.appendChild(grid);
-      wrapper.appendChild(scrollEl);
+      wrapper.appendChild(grid);
       container.appendChild(wrapper);
-      lucide.createIcons({ nodes: [wrapper] });
       return;
     }
 
