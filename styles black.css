@@ -260,7 +260,7 @@ body { display: flex; }
 .bookmark-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .col-check  { width: 36px; }
 .col-fav    { width: 36px; }
-.col-tags   { width: 240px; }
+.col-tags   { width: 340px; }
 .col-date   { width: 85px; }
 .col-visits { width: 65px; }
 .col-actions{ width: 76px; }
