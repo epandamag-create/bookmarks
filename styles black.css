@@ -274,7 +274,7 @@ body { display: flex; }
 .table-favicon { width: 14px; height: 14px; font-size: 12px; }
 .table-title { font-size: 13px; font-weight: 500; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .table-title:hover { color: var(--accent); }
-.table-tags { display: flex; gap: 3px; flex-wrap: nowrap; overflow: hidden; align-items: center; }
+.table-tags { display: flex; gap: 3px; flex-wrap: wrap; align-items: center; min-width: 200px; }
 .table-date { font-size: 12px; color: var(--text-3); font-family: 'DM Mono', monospace; white-space: nowrap; }
 .table-visits { font-size: 12px; color: var(--text-2); font-family: 'DM Mono', monospace; }
 .table-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; }

@@ -270,7 +270,7 @@ body { display: flex; }
 .table-favicon { width: 16px; height: 16px; font-size: 13px; }
 .table-title { display: block; font-size: 13px; font-weight: 500; color: var(--text-primary); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .table-title:hover { color: var(--accent); }
-.table-tags { display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden; align-items: center; }
+.table-tags { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; min-width: 220px; }
 .table-date { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; white-space: nowrap; }
 .table-visits { font-size: 13px; color: var(--text-secondary); font-family: 'DM Mono', monospace; }
 .table-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
