@@ -253,9 +253,8 @@ body { display: flex; }
 .col-date   { width: 90px; }
 .col-visits { width: 70px; }
 .col-actions{ width: 80px; }
-/* sticky thead works because list-scroll is the overflow container */
-.bookmark-table thead { position: sticky; top: 0; z-index: 2; }
 .bookmark-table th {
+  position: sticky; top: 0; z-index: 2;
   text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600;
   color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px;
   background: var(--bg-surface); border-bottom: 1px solid var(--border);
