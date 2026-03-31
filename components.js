@@ -275,7 +275,7 @@ window.Components = (() => {
     containerEl.appendChild(input);
 
     const whitelist = DB.getUniqueTagsList();
-    const tagify = new Tagify(input, {
+    const tagify = new window.Tagify(input, {
       whitelist,
       originalInputValueFormat: valArr => valArr.map(v => v.value).join(','),
       dropdown: {
@@ -591,8 +591,8 @@ window.Components = (() => {
       const md = notesTa.value;
       if (window.marked && md.trim()) {
         notesPreview.innerHTML = window.DOMPurify
-          ? DOMPurify.sanitize(marked.parse(md))
-          : marked.parse(md);
+          ? window.DOMPurify.sanitize(window.marked.parse(md))
+          : window.marked.parse(md);
       } else {
         notesPreview.innerHTML = md
           ? `<span style="color:var(--text-2);font-size:13px;white-space:pre-wrap">${md}</span>`
@@ -828,13 +828,13 @@ window.Components = (() => {
       return;
     }
 
-    const svg = d3.select(container).append('svg')
+    const svg = window.d3.select(container).append('svg')
       .attr('width', '100%').attr('height', '100%')
       .style('background', 'transparent');
 
     const g = svg.append('g');
 
-    svg.call(d3.zoom().scaleExtent([0.2, 4]).on('zoom', e => g.attr('transform', e.transform)));
+    svg.call(window.d3.zoom().scaleExtent([0.2, 4]).on('zoom', e => g.attr('transform', e.transform)));
 
     // Build nodes and links
     const nodes = bookmarks.map(bm => ({ id: bm.id, title: bm.title, favicon: bm.favicon, tags: bm.tags || [], color: bm.color, url: bm.url }));
@@ -846,17 +846,17 @@ window.Components = (() => {
       }
     }
 
-    const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(100).strength(d => Math.min(1, d.strength * 0.3)))
-      .force('charge', d3.forceManyBody().strength(-200))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide(28));
+    const sim = window.d3.forceSimulation(nodes)
+      .force('link', window.d3.forceLink(links).id(d => d.id).distance(100).strength(d => Math.min(1, d.strength * 0.3)))
+      .force('charge', window.d3.forceManyBody().strength(-200))
+      .force('center', window.d3.forceCenter(width / 2, height / 2))
+      .force('collision', window.d3.forceCollide(28));
 
     const link = g.append('g').selectAll('line').data(links).enter().append('line')
       .attr('stroke', 'rgba(99,102,241,0.25)').attr('stroke-width', d => Math.min(3, d.strength));
 
     const node = g.append('g').selectAll('g').data(nodes).enter().append('g')
-      .call(d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .call(window.d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
         .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
         .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
       .style('cursor', 'pointer');
@@ -869,7 +869,7 @@ window.Components = (() => {
 
     // Real favicon via SVG <image> element (more reliable than foreignObject)
     node.each(function(d) {
-      const g = d3.select(this);
+      const g = window.d3.select(this);
       const favUrl = DB.faviconUrl(d.url);
       if (favUrl) {
         g.append('image')
@@ -878,7 +878,7 @@ window.Components = (() => {
           .attr('width', 20).attr('height', 20)
           .attr('clip-path', 'circle()')
           .on('error', function() {
-            d3.select(this).remove();
+            window.d3.select(this).remove();
             g.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
               .attr('font-size', '14').text(d.favicon || '🔗');
           });
@@ -915,10 +915,10 @@ window.Components = (() => {
     const ctrls = el('div', 'graph-controls');
     const zoomIn = el('button', 'graph-ctrl-btn');
     zoomIn.appendChild(icon('zoom-in', 14));
-    zoomIn.onclick = () => svg.transition().call(d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 1.3);
+    zoomIn.onclick = () => svg.transition().call(window.d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 1.3);
     const zoomOut = el('button', 'graph-ctrl-btn');
     zoomOut.appendChild(icon('zoom-out', 14));
-    zoomOut.onclick = () => svg.transition().call(d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 0.7);
+    zoomOut.onclick = () => svg.transition().call(window.d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 0.7);
     ctrls.appendChild(zoomIn); ctrls.appendChild(zoomOut);
     container.appendChild(ctrls);
     lucide.createIcons({ nodes: [ctrls] });

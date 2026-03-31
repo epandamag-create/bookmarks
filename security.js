@@ -11,7 +11,7 @@
  * @param {string} html - Raw HTML string to sanitize
  * @returns {string} - Sanitized HTML string
  */
-export function sanitizeHTML(html) {
+function sanitizeHTML(html) {
   if (typeof html !== 'string') return '';
   
   // Use DOMPurify if available (loaded in index.html)
@@ -35,7 +35,7 @@ export function sanitizeHTML(html) {
  * @param {string} text - Plain text to escape
  * @returns {string} - Escaped text safe for innerHTML
  */
-export function escapeHTML(text) {
+function escapeHTML(text) {
   if (typeof text !== 'string') return '';
   const div = document.createElement('div');
   div.textContent = text;
@@ -49,7 +49,7 @@ export function escapeHTML(text) {
  * @param {string} [text] - Text content (automatically escaped)
  * @returns {HTMLElement} - Safe element
  */
-export function createSafeElement(tag, className = '', text = '') {
+function createSafeElement(tag, className = '', text = '') {
   const el = document.createElement(tag);
   if (className) el.className = className;
   if (text !== undefined && text !== null) {
@@ -65,7 +65,7 @@ export function createSafeElement(tag, className = '', text = '') {
  * @param {string} url - URL to validate
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateURL(url) {
+function validateURL(url) {
   if (!url || typeof url !== 'string') {
     return { valid: false, error: 'URL is required' };
   }
@@ -95,7 +95,7 @@ export function validateURL(url) {
  * @param {string} title - Title to validate
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateTitle(title) {
+function validateTitle(title) {
   if (!title || typeof title !== 'string') {
     return { valid: false, error: 'Title is required' };
   }
@@ -122,7 +122,7 @@ export function validateTitle(title) {
  * @param {string} tag - Tag to validate
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateTag(tag) {
+function validateTag(tag) {
   if (!tag || typeof tag !== 'string') {
     return { valid: false, error: 'Tag is required' };
   }
@@ -149,7 +149,7 @@ export function validateTag(tag) {
  * @param {string} description - Description to validate
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateDescription(description) {
+function validateDescription(description) {
   if (!description) {
     return { valid: true }; // Optional field
   }
@@ -170,7 +170,7 @@ export function validateDescription(description) {
  * @param {string} notes - Notes to validate
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateNotes(notes) {
+function validateNotes(notes) {
   if (!notes) {
     return { valid: true }; // Optional field
   }
@@ -191,7 +191,7 @@ export function validateNotes(notes) {
  * @param {string} color - Color code to validate
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateColor(color) {
+function validateColor(color) {
   if (!color) {
     return { valid: true }; // Optional field
   }
@@ -214,7 +214,7 @@ export function validateColor(color) {
  * @param {HTMLElement} element - Target element
  * @param {string} text - Text to set
  */
-export function safeSetText(element, text) {
+function safeSetText(element, text) {
   if (!element) return;
   element.textContent = String(text ?? '');
 }
@@ -224,7 +224,7 @@ export function safeSetText(element, text) {
  * @param {HTMLElement} element - Target element
  * @param {string} html - HTML to set (will be sanitized)
  */
-export function safeSetHTML(element, html) {
+function safeSetHTML(element, html) {
   if (!element) return;
   element.innerHTML = sanitizeHTML(html);
 }
@@ -236,7 +236,7 @@ export function safeSetHTML(element, html) {
  * @param {string} [className] - Optional CSS class
  * @returns {HTMLAnchorElement} - Safe anchor element
  */
-export function createSafeLink(href, text, className = '') {
+function createSafeLink(href, text, className = '') {
   const a = document.createElement('a');
   a.href = href;
   a.textContent = text;
@@ -251,14 +251,14 @@ export function createSafeLink(href, text, className = '') {
 /**
  * Maximum import file size (10MB)
  */
-export const MAX_IMPORT_SIZE = 10 * 1024 * 1024;
+const MAX_IMPORT_SIZE = 10 * 1024 * 1024;
 
 /**
  * Validates file size before import
  * @param {File} file - File to validate
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateFileSize(file) {
+function validateFileSize(file) {
   if (!file) {
     return { valid: false, error: 'No file selected' };
   }
@@ -279,7 +279,7 @@ export function validateFileSize(file) {
  * @param {string[]} allowedTypes - Allowed MIME types or extensions
  * @returns {{valid: boolean, error?: string}} - Validation result
  */
-export function validateFileType(file, allowedTypes) {
+function validateFileType(file, allowedTypes) {
   if (!file) {
     return { valid: false, error: 'No file selected' };
   }
@@ -316,7 +316,7 @@ export function validateFileType(file, allowedTypes) {
  * @param {number} delay - Minimum delay between calls (ms)
  * @returns {T} - Wrapped function
  */
-export function rateLimit(fn, delay) {
+function rateLimit(fn, delay) {
   let lastCall = 0;
   let timeout = null;
   
@@ -347,7 +347,7 @@ export function rateLimit(fn, delay) {
  * @param {*} [defaultValue] - Default value if parsing fails
  * @returns {*} - Parsed data or default value
  */
-export function safeJSONParse(json, defaultValue = null) {
+function safeJSONParse(json, defaultValue = null) {
   try {
     return JSON.parse(json);
   } catch (e) {
@@ -362,7 +362,7 @@ export function safeJSONParse(json, defaultValue = null) {
  * @param {*} [defaultValue] - Default value if retrieval fails
  * @returns {*} - Stored value or default
  */
-export function safeLocalStorageGet(key, defaultValue = null) {
+function safeLocalStorageGet(key, defaultValue = null) {
   try {
     const item = localStorage.getItem(key);
     if (item === null) return defaultValue;
@@ -379,7 +379,7 @@ export function safeLocalStorageGet(key, defaultValue = null) {
  * @param {*} value - Value to store
  * @returns {boolean} - Success status
  */
-export function safeLocalStorageSet(key, value) {
+function safeLocalStorageSet(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
     return true;

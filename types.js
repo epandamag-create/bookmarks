@@ -132,7 +132,7 @@
  * @param {*} value - Value to check
  * @returns {value is string}
  */
-export function isString(value) {
+function isString(value) {
   return typeof value === 'string' && value.length > 0;
 }
 
@@ -141,7 +141,7 @@ export function isString(value) {
  * @param {*} value - Value to check
  * @returns {value is number}
  */
-export function isPositiveInteger(value) {
+function isPositiveInteger(value) {
   return Number.isInteger(value) && value > 0;
 }
 
@@ -150,7 +150,7 @@ export function isPositiveInteger(value) {
  * @param {*} value - Value to check
  * @returns {value is string}
  */
-export function isValidURL(value) {
+function isValidURL(value) {
   if (!isString(value)) return false;
   try {
     const url = new URL(value);
@@ -165,7 +165,7 @@ export function isValidURL(value) {
  * @param {*} value - Value to check
  * @returns {value is string}
  */
-export function isValidHexColor(value) {
+function isValidHexColor(value) {
   return typeof value === 'string' && /^#[0-9A-Fa-f]{6}$/.test(value);
 }
 
@@ -174,7 +174,7 @@ export function isValidHexColor(value) {
  * @param {*} value - Value to check
  * @returns {value is string}
  */
-export function isValidISODate(value) {
+function isValidISODate(value) {
   if (!isString(value)) return false;
   const date = new Date(value);
   return !isNaN(date.getTime());
@@ -185,7 +185,7 @@ export function isValidISODate(value) {
  * @param {*} obj - Object to validate
  * @returns {obj is Bookmark}
  */
-export function isValidBookmark(obj) {
+function isValidBookmark(obj) {
   if (!obj || typeof obj !== 'object') return false;
   return (
     isString(obj.id) &&
@@ -203,7 +203,7 @@ export function isValidBookmark(obj) {
  * @param {*} obj - Object to validate
  * @returns {obj is Category}
  */
-export function isValidCategory(obj) {
+function isValidCategory(obj) {
   if (!obj || typeof obj !== 'object') return false;
   return (
     isString(obj.id) &&
@@ -218,7 +218,7 @@ export function isValidCategory(obj) {
  * @param {*} obj - Object to validate
  * @returns {obj is Tab}
  */
-export function isValidTab(obj) {
+function isValidTab(obj) {
   if (!obj || typeof obj !== 'object') return false;
   return (
     isString(obj.id) &&
