@@ -287,7 +287,7 @@ window.App = (() => {
 
     // Fade-in content area
     if (window.Motion?.animate) {
-      Motion.animate(content, { opacity: [0, 1], y: [6, 0] }, { duration: 0.18, easing: 'ease-out' });
+      window.Motion.animate(content, { opacity: [0, 1], y: [6, 0] }, { duration: 0.18, easing: 'ease-out' });
     }
   }
 
@@ -365,7 +365,7 @@ window.App = (() => {
     grid.appendChild(fragment);
 
     // Column reorder via Sortable
-    Sortable.create(grid, {
+    window.Sortable.create(grid, {
       animation:   180,
       handle:      '.category-column-header',
       filter:      '.cat-add-btn, .cat-menu-btn, .cat-collapse-btn',
@@ -382,7 +382,7 @@ window.App = (() => {
     // Stagger entrance for columns
     if (window.Motion?.animate) {
       const colEls = grid.querySelectorAll('.category-column');
-      Motion.animate(colEls, { opacity: [0, 1], y: [12, 0] }, { duration: 0.2, delay: Motion.stagger(0.04), easing: 'ease-out' });
+      window.Motion.animate(colEls, { opacity: [0, 1], y: [12, 0] }, { duration: 0.2, delay: window.Motion.stagger(0.04), easing: 'ease-out' });
     }
 
     // "Add Category" button
@@ -402,7 +402,7 @@ window.App = (() => {
     const body = colEl.querySelector('.category-column-body');
     if (sortableInstances.has(body)) return; // Prevent duplicate initialization
     
-    const sortable = Sortable.create(body, {
+    const sortable = window.Sortable.create(body, {
       group:     'cards',
       animation: 150,
       delay:     50,

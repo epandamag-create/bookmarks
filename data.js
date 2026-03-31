@@ -271,7 +271,7 @@ window.DB = (() => {
   // ── SEARCH ──
   let fuseInstance = null;
   function buildFuse() {
-    fuseInstance = new Fuse(data.bookmarks, {
+    fuseInstance = new window.Fuse(data.bookmarks, {
       keys: [
         { name: 'title', weight: 3 },
         { name: 'tags', weight: 2 },
