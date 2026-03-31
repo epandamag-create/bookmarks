@@ -1,5 +1,6 @@
 // v1.0 — data layer: mock data, localStorage, CRUD, Fuse search, AI simulation
 // v1.1 — added: faviconUrl() for real site icons via Google favicon service
+// v1.2 — added: faviconUrl() result cache to avoid repeated URL parsing
 
 window.DB = (() => {
   const STORAGE_KEY = 'bookmark_os_v1';
@@ -14,11 +15,16 @@ window.DB = (() => {
     try { return new URL(url).hostname.replace('www.', ''); } catch { return url; }
   }
 
+  const _faviconUrlCache = new Map();
   function faviconUrl(url) {
+    if (_faviconUrlCache.has(url)) return _faviconUrlCache.get(url);
+    let result = null;
     try {
       const domain = new URL(url).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-    } catch { return null; }
+      result = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    } catch { /* keep null */ }
+    _faviconUrlCache.set(url, result);
+    return result;
   }
 
   function faviconEmoji(url) {
@@ -73,7 +79,6 @@ window.DB = (() => {
       { id: uuid(), title: 'Linear', url: 'https://linear.app', description: 'The issue tracker built for high-performance teams. Fast, opinionated, beautiful.', tags: ['productivity','project-management','issues','dev'], notes: 'Switch from Jira', favicon: '📐', color: '#6366f1', createdAt: '2024-03-15T10:00:00Z', updatedAt: '2024-03-15T10:00:00Z', visitCount: 37, favorite: false, aiSummary: 'Linear is a streamlined project management tool designed for software teams.', aiTopics: ['project management', 'issues', 'workflow'], categoryId: 'cat_pm', inCatalog: false },
       { id: uuid(), title: 'Raycast', url: 'https://raycast.com', description: 'A collection of powerful productivity tools all within an extendable launcher.', tags: ['productivity','launcher','mac','tools'], notes: 'Replace Spotlight', favicon: '⚡', color: '#f59e0b', createdAt: '2024-03-20T10:00:00Z', updatedAt: '2024-03-20T10:00:00Z', visitCount: 61, favorite: true, aiSummary: 'Raycast is a blazing-fast launcher for macOS that supercharges developer productivity.', aiTopics: ['productivity', 'automation', 'launcher'], categoryId: 'cat_pm', inCatalog: false },
     ],
-    catalog: [],
     dashboardColumns: 4,
   };
 
@@ -89,7 +94,6 @@ window.DB = (() => {
       if (raw) {
         data = JSON.parse(raw);
         // Ensure arrays exist
-        if (!data.catalog) data.catalog = [];
         if (!data.categories) data.categories = [];
         if (!data.tabs) data.tabs = defaultData.tabs;
       } else {
@@ -133,7 +137,6 @@ window.DB = (() => {
       categoryId: bm.categoryId || (data.categories[0] ? data.categories[0].id : ''),
       inCatalog: bm.inCatalog || false,
     };
-    if (bm.inCatalog) data.catalog.unshift(item);
     data.bookmarks.unshift(item);
     save();
     return item;
@@ -268,7 +271,7 @@ window.DB = (() => {
   // ── SEARCH ──
   let fuseInstance = null;
   function buildFuse() {
-    fuseInstance = new Fuse(data.bookmarks, {
+    fuseInstance = new window.Fuse(data.bookmarks, {
       keys: [
         { name: 'title', weight: 3 },
         { name: 'tags', weight: 2 },
@@ -417,6 +420,14 @@ window.DB = (() => {
   }
 
   // ── IMPORT / EXPORT ──
+  function downloadJSON(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
   function parseNetscapeHTML(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -428,7 +439,10 @@ window.DB = (() => {
         if (child.nodeName === 'H3') { current = child.textContent; }
         else if (child.nodeName === 'A') {
           const url = child.getAttribute('href');
-          const title = child.textContent.trim();
+          const rawTitle = child.textContent.trim();
+          const isUrl = !rawTitle || /^https?:\/\//i.test(rawTitle) || rawTitle === url;
+          const title = isUrl ? domainOf(url) : rawTitle;
+          console.log('[import]', { url, rawTitle, isUrl, title });
           if (url && url.startsWith('http')) {
             if (!folders[current]) folders[current] = [];
             folders[current].push({ url, title });
@@ -454,31 +468,99 @@ window.DB = (() => {
   }
 
   function exportJSON() {
-    const blob = new Blob([JSON.stringify({ bookmarks: data.bookmarks, tabs: data.tabs, categories: data.categories }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `bookmarks-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
+    downloadJSON({ bookmarks: data.bookmarks, tabs: data.tabs, categories: data.categories }, `bookmarks-${new Date().toISOString().slice(0,10)}.json`);
   }
 
   function exportTabJSON(tabId) {
     const catIds = new Set(data.categories.filter(c => c.tabId === tabId).map(c => c.id));
     const tab = getTabById(tabId);
     const bms = data.bookmarks.filter(b => catIds.has(b.categoryId));
-    const blob = new Blob([JSON.stringify({ tab, bookmarks: bms }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${(tab?.name||'tab').toLowerCase().replace(/\s/g,'-')}-bookmarks.json`;
-    a.click();
+    downloadJSON({ tab, bookmarks: bms }, `${(tab?.name||'tab').toLowerCase().replace(/\s/g,'-')}-bookmarks.json`);
   }
 
   function exportSelected(ids) {
     const bms = data.bookmarks.filter(b => ids.includes(b.id));
-    const blob = new Blob([JSON.stringify({ bookmarks: bms }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `selected-bookmarks-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
+    downloadJSON({ bookmarks: bms }, `selected-bookmarks-${new Date().toISOString().slice(0,10)}.json`);
+  }
+
+  function parseXLSX(arrayBuffer) {
+    const wb = XLSX.read(arrayBuffer, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    const categoryNames = new Set();
+    const bookmarks = rows
+      .filter(r => r.URL && String(r.URL).startsWith('http'))
+      .map(r => {
+        const catName = String(r.Category || '').trim() || 'Imported';
+        categoryNames.add(catName);
+        return {
+          title:        (String(r.Title || '').trim()) || domainOf(String(r.URL).trim()),
+          url:          String(r.URL).trim(),
+          categoryName: catName,
+          tags:         r.Tags ? String(r.Tags).split(',').map(t => t.trim()).filter(Boolean) : [],
+          notes:        String(r.Notes || '').trim(),
+          starred:      String(r.Starred).toLowerCase() === 'yes',
+        };
+      });
+    return { bookmarks, categoryNames: [...categoryNames] };
+  }
+
+  function importFromXLSX(parsed, fallbackCatId) {
+    const catByName = Object.fromEntries(data.categories.map(c => [c.name.toLowerCase(), c.id]));
+    let count = 0;
+    for (const bm of parsed.bookmarks) {
+      const catId = catByName[bm.categoryName.toLowerCase()] || fallbackCatId;
+      if (!catId) continue;
+      addBookmark({ title: bm.title, url: bm.url, categoryId: catId,
+                    tags: bm.tags, notes: bm.notes, starred: bm.starred });
+      count++;
+    }
+    return count;
+  }
+
+  function bmsToXLSXRows(bms) {
+    const catMap = Object.fromEntries(data.categories.map(c => [c.id, c.name]));
+    const tabMap = Object.fromEntries(data.tabs.map(t => [t.id, t.name]));
+    const catTab = Object.fromEntries(data.categories.map(c => [c.id, tabMap[c.tabId] || '']));
+    return bms.map(b => ({
+      Title:    b.title || '',
+      URL:      b.url || '',
+      Category: catMap[b.categoryId] || '',
+      Workspace: catTab[b.categoryId] || '',
+      Tags:     (b.tags || []).join(', '),
+      Notes:    b.notes || '',
+      Starred:  b.starred ? 'Yes' : 'No',
+      Visits:   b.visits || 0,
+      Added:    b.createdAt ? new Date(b.createdAt).toLocaleDateString() : '',
+    }));
+  }
+
+  function downloadXLSX(rows, filename) {
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const colWidths = [
+      { wch: 40 }, { wch: 55 }, { wch: 20 }, { wch: 20 },
+      { wch: 25 }, { wch: 30 }, { wch: 8 }, { wch: 7 }, { wch: 12 },
+    ];
+    ws['!cols'] = colWidths;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bookmarks');
+    XLSX.writeFile(wb, filename);
+  }
+
+  function exportXLSX() {
+    downloadXLSX(bmsToXLSXRows(data.bookmarks), `bookmarks-${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+
+  function exportTabXLSX(tabId) {
+    const catIds = new Set(data.categories.filter(c => c.tabId === tabId).map(c => c.id));
+    const tab = getTabById(tabId);
+    const bms = data.bookmarks.filter(b => catIds.has(b.categoryId));
+    const rows = bmsToXLSXRows(bms);
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{ wch: 40 }, { wch: 55 }, { wch: 20 }, { wch: 20 }, { wch: 25 }, { wch: 30 }, { wch: 8 }, { wch: 7 }, { wch: 12 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, tab?.name || 'Workspace');
+    XLSX.writeFile(wb, `${(tab?.name || 'tab').toLowerCase().replace(/\s/g, '-')}-bookmarks.xlsx`);
   }
 
   // Settings
@@ -511,7 +593,8 @@ window.DB = (() => {
     // Tools
     findDuplicates, findDeadLinks, findRarelyVisited,
     // Import / Export
-    parseNetscapeHTML, importFromNetscape, exportJSON, exportTabJSON, exportSelected,
+    parseNetscapeHTML, importFromNetscape, parseXLSX, importFromXLSX,
+    exportJSON, exportTabJSON, exportSelected, exportXLSX, exportTabXLSX,
     // Settings
     getColumns, setColumns,
   };

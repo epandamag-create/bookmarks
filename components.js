@@ -2,8 +2,32 @@
 // v1.1 — added: real favicons via Google favicon service with emoji fallback
 // v1.2 — added: collapse chevron on category header, header click to collapse
 // v1.3 — added: Motion One animations, Tagify tags, Marked.js notes
+// v1.4 — added: BookmarkCard DOM element cache to prevent favicon flickering on re-render
 
 window.Components = (() => {
+
+  // Cache of rendered card elements: bmId → { fingerprint, element }
+  // Fingerprint covers all fields that affect card appearance.
+  // Reusing the same <img> element avoids favicon flicker on every App.render().
+  const _cardCache = new Map();
+
+  // ── SHARED FETCH HELPER ──
+  async function fetchPageHTML(targetUrl) {
+    const proxies = [
+      u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      u => `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
+    ];
+    for (const proxy of proxies) {
+      try {
+        const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) continue;
+        const html = await res.text();
+        if (html.length > 200) return html;
+      } catch { continue; }
+    }
+    return '';
+  }
 
   // ── MOTION HELPERS ──
   function openOverlay(overlay, modal) {
@@ -108,6 +132,10 @@ window.Components = (() => {
   // ── BOOKMARK CARD ──
   function BookmarkCard(bm) {
     const cat = DB.getCategoryById(bm.categoryId);
+    const fingerprint = `${bm.updatedAt}|${cat?.color || ''}`;
+    const cached = _cardCache.get(bm.id);
+    if (cached && cached.fingerprint === fingerprint) return cached.element;
+
     const card = el('div', 'bookmark-card');
     card.dataset.id = bm.id;
     card.style.setProperty('--card-color', bm.color || (cat ? cat.color : 'transparent'));
@@ -169,6 +197,7 @@ window.Components = (() => {
     meta.appendChild(visits);
     card.appendChild(meta);
 
+    _cardCache.set(bm.id, { fingerprint, element: card });
     return card;
   }
 
@@ -246,7 +275,7 @@ window.Components = (() => {
     containerEl.appendChild(input);
 
     const whitelist = DB.getUniqueTagsList();
-    const tagify = new Tagify(input, {
+    const tagify = new window.Tagify(input, {
       whitelist,
       originalInputValueFormat: valArr => valArr.map(v => v.value).join(','),
       dropdown: {
@@ -403,29 +432,6 @@ window.Components = (() => {
       titleInput.value = titleInput.value || DB.domainOf(url);
       if (descStatus) descStatus.textContent = '⏳ Fetching...';
 
-      async function fetchPageHTML(targetUrl) {
-        const proxies = [
-          u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-          u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-          u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-        ];
-        for (const proxy of proxies) {
-          try {
-            const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
-            if (!res.ok) continue;
-            const ct = res.headers.get('content-type') || '';
-            if (ct.includes('json')) {
-              const j = await res.json();
-              const html = j.contents || j.data || '';
-              if (html.length > 200) return html;
-            } else {
-              const html = await res.text();
-              if (html.length > 200) return html;
-            }
-          } catch { continue; }
-        }
-        return '';
-      }
 
       try {
         const html = await fetchPageHTML(url);
@@ -585,8 +591,8 @@ window.Components = (() => {
       const md = notesTa.value;
       if (window.marked && md.trim()) {
         notesPreview.innerHTML = window.DOMPurify
-          ? DOMPurify.sanitize(marked.parse(md))
-          : marked.parse(md);
+          ? window.DOMPurify.sanitize(window.marked.parse(md))
+          : window.marked.parse(md);
       } else {
         notesPreview.innerHTML = md
           ? `<span style="color:var(--text-2);font-size:13px;white-space:pre-wrap">${md}</span>`
@@ -659,7 +665,8 @@ window.Components = (() => {
         <div class="cmd-items" id="cmd-items"></div>
       </div>
     `;
-    openOverlay(overlay, modal);
+    const palette = overlay.querySelector('.cmd-palette');
+    openOverlay(overlay, palette);
     lucide.createIcons({ nodes: [overlay] });
 
     const input = overlay.querySelector('#cmd-input');
@@ -821,13 +828,13 @@ window.Components = (() => {
       return;
     }
 
-    const svg = d3.select(container).append('svg')
+    const svg = window.d3.select(container).append('svg')
       .attr('width', '100%').attr('height', '100%')
       .style('background', 'transparent');
 
     const g = svg.append('g');
 
-    svg.call(d3.zoom().scaleExtent([0.2, 4]).on('zoom', e => g.attr('transform', e.transform)));
+    svg.call(window.d3.zoom().scaleExtent([0.2, 4]).on('zoom', e => g.attr('transform', e.transform)));
 
     // Build nodes and links
     const nodes = bookmarks.map(bm => ({ id: bm.id, title: bm.title, favicon: bm.favicon, tags: bm.tags || [], color: bm.color, url: bm.url }));
@@ -839,17 +846,17 @@ window.Components = (() => {
       }
     }
 
-    const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(100).strength(d => Math.min(1, d.strength * 0.3)))
-      .force('charge', d3.forceManyBody().strength(-200))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide(28));
+    const sim = window.d3.forceSimulation(nodes)
+      .force('link', window.d3.forceLink(links).id(d => d.id).distance(100).strength(d => Math.min(1, d.strength * 0.3)))
+      .force('charge', window.d3.forceManyBody().strength(-200))
+      .force('center', window.d3.forceCenter(width / 2, height / 2))
+      .force('collision', window.d3.forceCollide(28));
 
     const link = g.append('g').selectAll('line').data(links).enter().append('line')
       .attr('stroke', 'rgba(99,102,241,0.25)').attr('stroke-width', d => Math.min(3, d.strength));
 
     const node = g.append('g').selectAll('g').data(nodes).enter().append('g')
-      .call(d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .call(window.d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
         .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
         .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
       .style('cursor', 'pointer');
@@ -862,7 +869,7 @@ window.Components = (() => {
 
     // Real favicon via SVG <image> element (more reliable than foreignObject)
     node.each(function(d) {
-      const g = d3.select(this);
+      const g = window.d3.select(this);
       const favUrl = DB.faviconUrl(d.url);
       if (favUrl) {
         g.append('image')
@@ -871,7 +878,7 @@ window.Components = (() => {
           .attr('width', 20).attr('height', 20)
           .attr('clip-path', 'circle()')
           .on('error', function() {
-            d3.select(this).remove();
+            window.d3.select(this).remove();
             g.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
               .attr('font-size', '14').text(d.favicon || '🔗');
           });
@@ -908,10 +915,10 @@ window.Components = (() => {
     const ctrls = el('div', 'graph-controls');
     const zoomIn = el('button', 'graph-ctrl-btn');
     zoomIn.appendChild(icon('zoom-in', 14));
-    zoomIn.onclick = () => svg.transition().call(d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 1.3);
+    zoomIn.onclick = () => svg.transition().call(window.d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 1.3);
     const zoomOut = el('button', 'graph-ctrl-btn');
     zoomOut.appendChild(icon('zoom-out', 14));
-    zoomOut.onclick = () => svg.transition().call(d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 0.7);
+    zoomOut.onclick = () => svg.transition().call(window.d3.zoom().scaleExtent([0.2,4]).on('zoom', e => g.attr('transform', e.transform)).scaleBy, 0.7);
     ctrls.appendChild(zoomIn); ctrls.appendChild(zoomOut);
     container.appendChild(ctrls);
     lucide.createIcons({ nodes: [ctrls] });
@@ -975,7 +982,9 @@ window.Components = (() => {
   function ImportModal() {
     const overlay = document.getElementById('modal-overlay');
     const modal = el('div', 'modal');
-    let parsedFolders = null;
+    let parsedFolders = null;   // HTML import
+    let parsedXLSX    = null;   // XLSX import
+    let importMode    = null;   // 'html' | 'xlsx'
 
     const allCats = DB.getAllCategories();
 
@@ -983,13 +992,13 @@ window.Components = (() => {
       <div class="modal-header"><span class="modal-title">Import Bookmarks</span><button class="modal-close" id="import-close"><i data-lucide="x"></i></button></div>
       <div class="import-drop-zone" id="import-drop">
         <div class="drop-icon">📂</div>
-        <div>Drop a Chrome/Firefox HTML export here</div>
+        <div>Drop a Chrome/Firefox HTML export or XLSX file here</div>
         <div style="margin-top:6px;font-size:12px;color:var(--text-muted)">or <label for="import-file" style="color:var(--accent);cursor:pointer">browse files</label></div>
-        <input type="file" id="import-file" accept=".html,.htm" style="display:none">
+        <input type="file" id="import-file" accept=".html,.htm,.xlsx" style="display:none">
       </div>
       <div id="import-preview" style="display:none"></div>
       <div class="form-group" id="import-cat-row" style="display:none">
-        <label class="form-label">Import to Category</label>
+        <label class="form-label" id="import-cat-label">Fallback Category <span style="font-weight:400;color:var(--text-muted)">(used when category not found)</span></label>
         <select class="form-select" id="import-cat">
           ${allCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
         </select>
@@ -1007,19 +1016,46 @@ window.Components = (() => {
     modal.querySelector('#import-close').onclick = close;
     modal.querySelector('#import-cancel').onclick = close;
 
+    function showPreview(html) {
+      const preview = modal.querySelector('#import-preview');
+      preview.style.display = 'block';
+      preview.innerHTML = `<div class="import-preview">${html}</div>`;
+      modal.querySelector('#import-cat-row').style.display = 'block';
+      modal.querySelector('#import-confirm').style.display = 'inline-flex';
+    }
+
     function handleFile(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        parsedFolders = DB.parseNetscapeHTML(e.target.result);
-        const total = Object.values(parsedFolders).reduce((s, items) => s + items.length, 0);
-        const folderCount = Object.keys(parsedFolders).length;
-        const preview = modal.querySelector('#import-preview');
-        preview.style.display = 'block';
-        preview.innerHTML = `<div class="import-preview">✅ Found <strong>${total} bookmarks</strong> in <strong>${folderCount} folder(s)</strong>: ${Object.keys(parsedFolders).join(', ')}</div>`;
-        modal.querySelector('#import-cat-row').style.display = 'block';
-        modal.querySelector('#import-confirm').style.display = 'inline-flex';
-      };
-      reader.readAsText(file);
+      const isXLSX = file.name.toLowerCase().endsWith('.xlsx');
+      if (isXLSX) {
+        importMode = 'xlsx';
+        modal.querySelector('#import-cat-label').innerHTML =
+          'Fallback Category <span style="font-weight:400;color:var(--text-muted)">(used when category not matched)</span>';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          parsedXLSX = DB.parseXLSX(e.target.result);
+          const { bookmarks, categoryNames } = parsedXLSX;
+          const matched = categoryNames.filter(n =>
+            DB.getAllCategories().some(c => c.name.toLowerCase() === n.toLowerCase())
+          );
+          const unmatched = categoryNames.filter(n => !matched.includes(n));
+          let info = `✅ Found <strong>${bookmarks.length} rows</strong> across <strong>${categoryNames.length} category column(s)</strong>`;
+          if (matched.length)   info += `<br><span style="color:var(--text-muted)">Matched: ${matched.join(', ')}</span>`;
+          if (unmatched.length) info += `<br><span style="color:var(--text-muted)">Will use fallback: ${unmatched.join(', ')}</span>`;
+          showPreview(info);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        importMode = 'html';
+        modal.querySelector('#import-cat-label').innerHTML = 'Import to Category';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          parsedFolders = DB.parseNetscapeHTML(e.target.result);
+          const total = Object.values(parsedFolders).reduce((s, items) => s + items.length, 0);
+          const folderCount = Object.keys(parsedFolders).length;
+          showPreview(`✅ Found <strong>${total} bookmarks</strong> in <strong>${folderCount} folder(s)</strong>: ${Object.keys(parsedFolders).join(', ')}`);
+        };
+        reader.readAsText(file);
+      }
     }
 
     modal.querySelector('#import-file').onchange = (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); };
@@ -1031,9 +1067,13 @@ window.Components = (() => {
     dropZone.ondrop = (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
 
     modal.querySelector('#import-confirm').onclick = () => {
-      if (!parsedFolders) return;
       const catId = modal.querySelector('#import-cat').value;
-      const count = DB.importFromNetscape(parsedFolders, catId);
+      let count = 0;
+      if (importMode === 'xlsx' && parsedXLSX) {
+        count = DB.importFromXLSX(parsedXLSX, catId);
+      } else if (importMode === 'html' && parsedFolders) {
+        count = DB.importFromNetscape(parsedFolders, catId);
+      }
       DB.rebuildFuse();
       App.toast(`Imported ${count} bookmarks`, 'success');
       close();
@@ -1084,6 +1124,6 @@ window.Components = (() => {
     CommandPalette, BulkActionsBar, GraphView, ShareModal, ImportModal,
     openModal: openOverlay, closeModal: closeOverlay,
     TagInput, ColorPicker, showContextMenu, hideContextMenu,
-    icon, el, iconBtn, faviconEl, extractMetaContent,
+    icon, el, iconBtn, faviconEl, extractMetaContent, fetchPageHTML,
   };
 })();

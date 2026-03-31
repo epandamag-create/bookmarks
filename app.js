@@ -1,5 +1,6 @@
 // v1.0 — main app: state, views (dashboard/list/graph/tags/tools/settings), routing, keyboard shortcuts
 // v1.2 — fixed: border-top on category header, collapse on header click, tab pill active state, list view scroll
+// v2.0 — perf: debounced search, document fragments, cached renders, requestIdleCallback, optimized event delegation
 
 window.App = (() => {
   const state = {
@@ -7,16 +8,62 @@ window.App = (() => {
     activeTabId: null,
     selectedIds: new Set(),
     listSort: { field: 'createdAt', dir: 'desc' },
+    listLayout: 'table',
     listTagFilter: null,
     showCatalog: false,
     showVisits: false,
     toolsMode: null,
     toolsResults: null,
-    toolsRunning: false,
     focusedCardId: null,
-    searchActive: false,
     collapsedCats: new Set(),
+    searchQuery: '',
   };
+
+  // ── PERFORMANCE UTILS ──
+  function debounce(fn, delay) {
+    let timer = null;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  function throttle(fn, limit) {
+    let inThrottle = false;
+    return (...args) => {
+      if (!inThrottle) {
+        fn(...args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+
+  // Render queue for batched DOM updates
+  let renderQueued = false;
+  let pendingRenders = new Set();
+
+  function scheduleRender(viewName) {
+    pendingRenders.add(viewName);
+    if (!renderQueued) {
+      renderQueued = true;
+      requestIdleCallback(() => {
+        renderQueued = false;
+        pendingRenders.forEach(name => {
+          if (name === 'tabs') renderTabsBar();
+          if (name === 'sidebar') renderSidebar();
+          if (name === 'content') renderContent();
+          if (name === 'topbar') renderTopbar();
+        });
+        pendingRenders.clear();
+      }, { timeout: 100 });
+    }
+  }
+
+  const debouncedRenderContent = debounce(renderContent, 150);
+  const throttledUpdateArrows = throttle(updateScrollArrows, 100);
+
+  let tabsScrollController = null;
 
   // ── TOAST ──
   function toast(msg, type = 'success') {
@@ -37,8 +84,12 @@ window.App = (() => {
   function switchView(view) {
     state.view = view;
     state.selectedIds.clear();
+    state.searchQuery = '';
+    const si = document.getElementById('search-input');
+    const mi = document.getElementById('mobile-search-input');
+    if (si) { si.value = ''; si.nextElementSibling?.classList.remove('visible'); }
+    if (mi) { mi.value = ''; mi.nextElementSibling?.classList.remove('visible'); }
     if (view === 'starred') state.activeTabId = null;
-    renderNav();
     renderTabsBar();
     renderSidebar();
     renderContent();
@@ -49,7 +100,11 @@ window.App = (() => {
     state.activeTabId = tabId;
     state.view = 'dashboard';
     state.selectedIds.clear();
-    renderNav();
+    state.searchQuery = '';
+    const si = document.getElementById('search-input');
+    const mi = document.getElementById('mobile-search-input');
+    if (si) { si.value = ''; si.nextElementSibling?.classList.remove('visible'); }
+    if (mi) { mi.value = ''; mi.nextElementSibling?.classList.remove('visible'); }
     renderTabsBar();
     renderSidebar();
     renderContent();
@@ -59,7 +114,9 @@ window.App = (() => {
   // ── RENDER SIDEBAR ──
   function renderSidebar() {
     const list = document.getElementById('sidebar-tabs-list');
+    const fragment = document.createDocumentFragment();
     list.innerHTML = '';
+    const allBookmarks = DB.getAllBookmarks();
     DB.getTabs().forEach(tab => {
       const item = document.createElement('div');
       item.className = 'sidebar-tab-item' + (tab.id === state.activeTabId && state.view === 'dashboard' ? ' active' : '');
@@ -71,7 +128,7 @@ window.App = (() => {
       name.className = 'tab-name';
       name.textContent = tab.name;
       const catIds = new Set(DB.getCategories(tab.id).map(c => c.id));
-      const bmCount = DB.getAllBookmarks().filter(b => catIds.has(b.categoryId)).length;
+      const bmCount = allBookmarks.filter(b => catIds.has(b.categoryId)).length;
       const count = document.createElement('span');
       count.className = 'tab-bm-count';
       count.textContent = bmCount;
@@ -94,14 +151,16 @@ window.App = (() => {
         if (e.target.closest('[data-action="tab-menu"]')) return;
         switchTab(tab.id);
       });
-      list.appendChild(item);
+      fragment.appendChild(item);
     });
+    list.appendChild(fragment);
     lucide.createIcons({ nodes: [list] });
   }
 
   // ── RENDER TABS BAR ──
   function renderTabsBar() {
     const tabsList = document.getElementById('tabs-list');
+    const fragment = document.createDocumentFragment();
     tabsList.innerHTML = '';
 
     DB.getTabs().forEach(tab => {
@@ -143,10 +202,16 @@ window.App = (() => {
       pill.addEventListener('mouseenter', () => menuBtn.style.opacity = '1');
       pill.addEventListener('mouseleave', () => menuBtn.style.opacity = '0');
 
-      tabsList.appendChild(pill);
+      fragment.appendChild(pill);
     });
 
-    // Scroll arrows
+    tabsList.appendChild(fragment);
+
+    // Scroll arrows — abort previous listeners to avoid accumulation
+    if (tabsScrollController) tabsScrollController.abort();
+    tabsScrollController = new AbortController();
+    const { signal } = tabsScrollController;
+
     const leftBtn = document.getElementById('tabs-scroll-left');
     const rightBtn = document.getElementById('tabs-scroll-right');
     const container = tabsList;
@@ -155,10 +220,19 @@ window.App = (() => {
       rightBtn.style.display = container.scrollLeft < container.scrollWidth - container.clientWidth - 2 ? 'flex' : 'none';
     }
     setTimeout(updateArrows, 50);
-    container.addEventListener('scroll', updateArrows);
-    container.addEventListener('wheel', (e) => { e.preventDefault(); container.scrollLeft += e.deltaY; updateArrows(); }, { passive: false });
-    leftBtn.onclick = () => { container.scrollLeft -= 120; setTimeout(updateArrows, 100); };
-    rightBtn.onclick = () => { container.scrollLeft += 120; setTimeout(updateArrows, 100); };
+    container.addEventListener('scroll', throttledUpdateArrows, { signal });
+    container.addEventListener('wheel', (e) => { e.preventDefault(); container.scrollLeft += e.deltaY; throttledUpdateArrows(); }, { signal, passive: false });
+    leftBtn.onclick = () => { container.scrollLeft -= 120; throttledUpdateArrows(); };
+    rightBtn.onclick = () => { container.scrollLeft += 120; throttledUpdateArrows(); };
+  }
+
+  function updateScrollArrows() {
+    const leftBtn = document.getElementById('tabs-scroll-left');
+    const rightBtn = document.getElementById('tabs-scroll-right');
+    const container = document.getElementById('tabs-list');
+    if (!leftBtn || !rightBtn || !container) return;
+    leftBtn.style.display = container.scrollLeft > 0 ? 'flex' : 'none';
+    rightBtn.style.display = container.scrollLeft < container.scrollWidth - container.clientWidth - 2 ? 'flex' : 'none';
   }
 
   // ── RENDER TOPBAR ──
@@ -191,20 +265,15 @@ window.App = (() => {
     });
   }
 
-  // ── RENDER NAV ──
-  function renderNav() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.classList.toggle('active', item.dataset.view === state.view);
-    });
-  }
-
   // ── RENDER CONTENT ──
   function renderContent() {
     const content = document.getElementById('content');
     content.innerHTML = '';
+    content.classList.toggle('view-list', !state.searchQuery && state.view === 'list' && state.listLayout === 'table');
     Components.BulkActionsBar(state.selectedIds);
 
-    switch (state.view) {
+    if (state.searchQuery.length >= 2) { renderSearchResults(content); }
+    else switch (state.view) {
       case 'dashboard': renderDashboard(content); break;
       case 'list': renderList(content); break;
       case 'starred': renderStarred(content); break;
@@ -218,8 +287,40 @@ window.App = (() => {
 
     // Fade-in content area
     if (window.Motion?.animate) {
-      Motion.animate(content, { opacity: [0, 1], y: [6, 0] }, { duration: 0.18, easing: 'ease-out' });
+      window.Motion.animate(content, { opacity: [0, 1], y: [6, 0] }, { duration: 0.18, easing: 'ease-out' });
     }
+  }
+
+  // ── SEARCH RESULTS ──
+  const debouncedSearchRender = debounce((container) => {
+    const found = DB.search(state.searchQuery, true);
+    const wrap = document.createElement('div');
+    wrap.className = 'search-results-view';
+
+    const header = document.createElement('div');
+    header.className = 'search-results-header';
+    header.textContent = found.length
+      ? `Результаты поиска: «${state.searchQuery}» — ${found.length} найдено`
+      : `Ничего не найдено по запросу «${state.searchQuery}»`;
+    wrap.appendChild(header);
+
+    if (found.length) {
+      const cols = DB.getColumns();
+      const grid = document.createElement('div');
+      grid.style.cssText = `display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px;align-items:start;width:100%;`;
+      const fragment = document.createDocumentFragment();
+      found.forEach(({ item }) => fragment.appendChild(Components.BookmarkCard(item)));
+      grid.appendChild(fragment);
+      wrap.appendChild(grid);
+    }
+
+    container.innerHTML = '';
+    container.appendChild(wrap);
+    lucide.createIcons({ nodes: [container] });
+  }, 200);
+
+  function renderSearchResults(container) {
+    debouncedSearchRender(container);
   }
 
   // ── DASHBOARD ──
@@ -248,6 +349,7 @@ window.App = (() => {
     grid.className = 'dashboard-grid';
     grid.dataset.cols = cols;
 
+    const fragment = document.createDocumentFragment();
     cats.forEach(cat => {
       const bms = allBms.filter(b => b.categoryId === cat.id);
       const col = Components.CategoryColumn(cat, bms, {
@@ -258,11 +360,12 @@ window.App = (() => {
         },
       });
       setupDragDrop(col, cat.id);
-      grid.appendChild(col);
+      fragment.appendChild(col);
     });
+    grid.appendChild(fragment);
 
     // Column reorder via Sortable
-    Sortable.create(grid, {
+    window.Sortable.create(grid, {
       animation:   180,
       handle:      '.category-column-header',
       filter:      '.cat-add-btn, .cat-menu-btn, .cat-collapse-btn',
@@ -278,8 +381,8 @@ window.App = (() => {
 
     // Stagger entrance for columns
     if (window.Motion?.animate) {
-      const cols = grid.querySelectorAll('.category-column');
-      Motion.animate(cols, { opacity: [0, 1], y: [12, 0] }, { duration: 0.2, delay: Motion.stagger(0.04), easing: 'ease-out' });
+      const colEls = grid.querySelectorAll('.category-column');
+      window.Motion.animate(colEls, { opacity: [0, 1], y: [12, 0] }, { duration: 0.2, delay: window.Motion.stagger(0.04), easing: 'ease-out' });
     }
 
     // "Add Category" button
@@ -294,9 +397,12 @@ window.App = (() => {
   }
 
   // ── DRAG & DROP (Sortable.js) ──
+  let sortableInstances = new Map();
   function setupDragDrop(colEl, catId) {
     const body = colEl.querySelector('.category-column-body');
-    Sortable.create(body, {
+    if (sortableInstances.has(body)) return; // Prevent duplicate initialization
+    
+    const sortable = window.Sortable.create(body, {
       group:     'cards',
       animation: 150,
       delay:     50,
@@ -313,67 +419,57 @@ window.App = (() => {
         if (newCatId && newCatId !== catId) {
           DB.updateBookmark(bmId, { categoryId: newCatId });
           DB.rebuildFuse();
-          renderContent();
+          debouncedRenderContent();
         }
       },
     });
+    sortableInstances.set(body, sortable);
   }
 
   // ── LIST VIEW ──
   function renderList(container) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'list-view';
-
     const allBms = state.showCatalog ? DB.getCatalog() : DB.getAllBookmarks();
-    let filtered = state.listTagFilter ? allBms.filter(b => (b.tags || []).includes(state.listTagFilter)) : allBms;
+    let filtered = state.listTagFilter
+      ? allBms.filter(b => (b.tags || []).includes(state.listTagFilter))
+      : allBms;
 
-    // Sort
     filtered = [...filtered].sort((a, b) => {
       const { field, dir } = state.listSort;
-      let va = a[field]; let vb = b[field];
+      let va = a[field] ?? ''; let vb = b[field] ?? '';
       if (field === 'title') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
       if (va < vb) return dir === 'asc' ? -1 : 1;
       if (va > vb) return dir === 'asc' ? 1 : -1;
       return 0;
     });
 
-    // Toolbar
-    const toolbar = document.createElement('div');
-    toolbar.className = 'list-toolbar';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'list-view';
 
-    // Tag filters — built from current bookmark set (catalog or regular)
+    // ── Toolbar ──
     const tagFilters = document.createElement('div');
     tagFilters.className = 'tag-filters';
 
-    // Catalog toggle as pill — before All
     const catalogBtn = document.createElement('span');
     catalogBtn.className = 'tag-filter-pill catalog-pill' + (state.showCatalog ? ' active' : '');
-    catalogBtn.innerHTML = '📥 Catalog';
-    catalogBtn.onclick = () => {
-      state.showCatalog = !state.showCatalog;
-      state.listTagFilter = null;
-      renderContent();
-    };
+    catalogBtn.textContent = '📥 Catalog';
+    catalogBtn.onclick = () => { state.showCatalog = !state.showCatalog; state.listTagFilter = null; renderContent(); };
     tagFilters.appendChild(catalogBtn);
 
     const allBtn = document.createElement('span');
-    allBtn.className = 'tag-filter-pill' + (!state.listTagFilter ? ' active' : '');
+    allBtn.className = 'tag-filter-pill';
     allBtn.textContent = 'All';
     allBtn.onclick = () => { state.listTagFilter = null; renderContent(); };
     tagFilters.appendChild(allBtn);
 
     const tagCounts = {};
     allBms.forEach(b => (b.tags || []).forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
-    Object.entries(tagCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 12)
-      .forEach(([tag]) => {
-        const pill = document.createElement('span');
-        pill.className = 'tag-filter-pill' + (state.listTagFilter === tag ? ' active' : '');
-        pill.textContent = tag;
-        pill.onclick = () => { state.listTagFilter = tag; renderContent(); };
-        tagFilters.appendChild(pill);
-      });
+    Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([tag]) => {
+      const pill = document.createElement('span');
+      pill.className = 'tag-filter-pill' + (state.listTagFilter === tag ? ' active' : '');
+      pill.textContent = tag;
+      pill.onclick = () => { state.listTagFilter = tag; renderContent(); };
+      tagFilters.appendChild(pill);
+    });
 
     const configBtn = document.createElement('button');
     configBtn.className = 'btn btn-ghost btn-sm list-config-btn';
@@ -386,10 +482,7 @@ window.App = (() => {
       const visitsItem = document.createElement('label');
       visitsItem.className = 'col-config-item';
       visitsItem.innerHTML = `<input type="checkbox" ${state.showVisits ? 'checked' : ''}> Visits`;
-      visitsItem.querySelector('input').onchange = (ev) => {
-        state.showVisits = ev.target.checked;
-        renderContent();
-      };
+      visitsItem.querySelector('input').onchange = (ev) => { state.showVisits = ev.target.checked; renderContent(); };
       menu.appendChild(visitsItem);
       const rect = configBtn.getBoundingClientRect();
       menu.style.cssText = `position:fixed;top:${rect.bottom + 4}px;right:${window.innerWidth - rect.right}px;z-index:200`;
@@ -398,10 +491,29 @@ window.App = (() => {
       setTimeout(() => document.addEventListener('click', close), 0);
     };
 
+    const layoutToggle = document.createElement('div');
+    layoutToggle.className = 'list-layout-toggle';
+    const tableBtn = document.createElement('button');
+    tableBtn.className = 'icon-btn' + (state.listLayout === 'table' ? ' active' : '');
+    tableBtn.title = 'Table view';
+    tableBtn.innerHTML = '<i data-lucide="list"></i>';
+    tableBtn.onclick = () => { state.listLayout = 'table'; renderContent(); };
+    const cardsBtn = document.createElement('button');
+    cardsBtn.className = 'icon-btn' + (state.listLayout === 'cards' ? ' active' : '');
+    cardsBtn.title = 'Cards view';
+    cardsBtn.innerHTML = '<i data-lucide="layout-grid"></i>';
+    cardsBtn.onclick = () => { state.listLayout = 'cards'; renderContent(); };
+    layoutToggle.appendChild(tableBtn);
+    layoutToggle.appendChild(cardsBtn);
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'list-toolbar';
     toolbar.appendChild(tagFilters);
+    toolbar.appendChild(layoutToggle);
     toolbar.appendChild(configBtn);
     wrapper.appendChild(toolbar);
 
+    // ── Empty state ──
     if (!filtered.length) {
       const esBtn = state.showCatalog ? '' : `<button class="btn btn-primary" style="margin-top:16px" id="es-add-bm"><i data-lucide="plus"></i> Add Bookmark</button>`;
       const emptyDiv = document.createElement('div');
@@ -413,152 +525,121 @@ window.App = (() => {
       return;
     }
 
-    if (state.showCatalog) {
-      const catHeader = document.createElement('div');
-      catHeader.className = 'catalog-section-header';
-      catHeader.textContent = 'Catalog';
-      wrapper.appendChild(catHeader);
+    // ── Cards view ──
+    if (state.listLayout === 'cards') {
+      const grid = document.createElement('div');
+      grid.className = 'list-cards-grid';
+      filtered.forEach(bm => grid.appendChild(Components.BookmarkCard(bm)));
+      wrapper.appendChild(grid);
+      container.appendChild(wrapper);
+      return;
     }
 
-    // Table
-    const tableWrapper = document.createElement('div');
-    tableWrapper.style.overflowX = 'auto';
+    // ── Table ──
+    // Single scroll container: thead+tbody in one table → columns never misalign
+    const scrollEl = document.createElement('div');
+    scrollEl.className = 'list-scroll';
+
     const table = document.createElement('table');
     table.className = 'bookmark-table';
 
-    const sortArrow = (field) => {
-      if (state.listSort.field !== field) return '';
-      return state.listSort.dir === 'asc' ? '↑' : '↓';
-    };
+    // colgroup locks column widths — no jumping when rows change
+    const visitsCog = state.showVisits ? '<col class="col-visits">' : '';
+    table.insertAdjacentHTML('afterbegin', `<colgroup>
+      <col class="col-check"><col class="col-fav"><col class="col-title">
+      <col class="col-tags"><col class="col-date">${visitsCog}<col class="col-actions">
+    </colgroup>`);
 
-    const sortHeader = (field, label) => {
+    // ── thead ──
+    const sortArrow = f => state.listSort.field === f
+      ? `<span class="sort-arrow">${state.listSort.dir === 'asc' ? '↑' : '↓'}</span>` : '';
+    const sortTh = (f, label) => {
       const th = document.createElement('th');
-      th.className = state.listSort.field === field ? 'sorted' : '';
-      th.innerHTML = `${label} <span class="sort-arrow">${sortArrow(field)}</span>`;
+      th.className = state.listSort.field === f ? 'sorted' : '';
+      th.innerHTML = `${label} ${sortArrow(f)}`;
       th.onclick = () => {
-        if (state.listSort.field === field) {
-          state.listSort.dir = state.listSort.dir === 'asc' ? 'desc' : 'asc';
-        } else {
-          state.listSort.field = field;
-          state.listSort.dir = 'asc';
-        }
+        state.listSort.dir = (state.listSort.field === f && state.listSort.dir === 'asc') ? 'desc' : 'asc';
+        state.listSort.field = f;
         renderContent();
       };
       return th;
     };
 
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    const checkAll = document.createElement('th');
-    checkAll.style.width = '36px';
-    const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.title = 'Select all';
-    chk.onchange = () => {
-      if (chk.checked) { filtered.forEach(b => state.selectedIds.add(b.id)); }
-      else { filtered.forEach(b => state.selectedIds.delete(b.id)); }
+    const chkAll = document.createElement('input');
+    chkAll.type = 'checkbox';
+    chkAll.title = 'Select all';
+    chkAll.checked = filtered.length > 0 && filtered.every(b => state.selectedIds.has(b.id));
+    chkAll.onchange = (ev) => {
+      filtered.forEach(b => ev.target.checked ? state.selectedIds.add(b.id) : state.selectedIds.delete(b.id));
       renderContent();
     };
-    chk.checked = filtered.length > 0 && filtered.every(b => state.selectedIds.has(b.id));
-    checkAll.appendChild(chk);
-    headRow.appendChild(checkAll);
-    const favTh = document.createElement('th'); favTh.textContent = 'Fav'; favTh.style.width = '36px'; headRow.appendChild(favTh);
-    headRow.appendChild(sortHeader('title', 'Title'));
-    const tagsTh = document.createElement('th'); tagsTh.textContent = 'Tags'; headRow.appendChild(tagsTh);
-    headRow.appendChild(sortHeader('createdAt', 'Date'));
-    if (state.showVisits) headRow.appendChild(sortHeader('visitCount', 'Visits'));
-    const actionsTh = document.createElement('th'); actionsTh.style.width = '80px'; headRow.appendChild(actionsTh);
+    const thCheck = document.createElement('th'); thCheck.appendChild(chkAll);
+    const thFav = document.createElement('th'); thFav.textContent = 'Fav';
+    const thTags = document.createElement('th'); thTags.textContent = 'Tags';
+    const thActions = document.createElement('th');
+
+    const headRow = document.createElement('tr');
+    [thCheck, thFav, sortTh('title', 'Title'), thTags, sortTh('createdAt', 'Date')].forEach(th => headRow.appendChild(th));
+    if (state.showVisits) headRow.appendChild(sortTh('visitCount', 'Visits'));
+    headRow.appendChild(thActions);
+
+    const thead = document.createElement('thead');
     thead.appendChild(headRow);
     table.appendChild(thead);
 
+    // ── tbody ──
     const tbody = document.createElement('tbody');
-    tbody.id = 'clusterize-content';
-
-    // Row HTML generator for Clusterize
-    function rowHTML(bm) {
-      const sel = state.selectedIds.has(bm.id) ? 'selected' : '';
-      const chk = state.selectedIds.has(bm.id) ? 'checked' : '';
-      const favicon = `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(bm.url)}&sz=16" width="16" height="16" style="border-radius:2px;display:block" onerror="this.style.display='none'">`;
-      const tags = (bm.tags || []).slice(0, 4).map(t =>
-        `<span class="tag-chip" data-action="filter-tag" data-tag="${t}">${t}</span>`
-      ).join('');
+    filtered.forEach(bm => {
+      const favSrc = DB.faviconUrl(bm.url);
+      const favicon = favSrc
+        ? `<img src="${favSrc}" width="16" height="16" style="border-radius:2px;display:block" onerror="this.style.display='none'">`
+        : `<span>${bm.favicon || '🔗'}</span>`;
+      const tags = (bm.tags || []).slice(0, 4)
+        .map(t => `<span class="tag-chip" data-action="filter-tag" data-tag="${t}">${t}</span>`).join('');
       const date = new Date(bm.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
-      const visitsCol = state.showVisits ? `<td class="table-visits">${bm.visitCount}</td>` : '';
+      const visitsCell = state.showVisits ? `<td class="table-visits">${bm.visitCount || 0}</td>` : '';
       const actions = bm.inCatalog
-        ? `<button class="icon-btn icon-btn-sm" data-action="open" title="Open">↗</button>
-           <button class="icon-btn icon-btn-sm" data-action="restore" title="Restore">↩</button>`
-        : `<button class="icon-btn icon-btn-sm" data-action="open" title="Open">↗</button>
-           <button class="icon-btn icon-btn-sm" data-action="edit" title="Edit">✎</button>`;
-      return `<tr data-id="${bm.id}" class="${sel}">
-        <td><input type="checkbox" ${chk} data-action="check"></td>
+        ? `<button class="icon-btn icon-btn-sm" data-action="open" title="Open">↗</button><button class="icon-btn icon-btn-sm" data-action="restore" title="Restore">↩</button>`
+        : `<button class="icon-btn icon-btn-sm" data-action="open" title="Open">↗</button><button class="icon-btn icon-btn-sm" data-action="edit" title="Edit">✎</button>`;
+      const tr = document.createElement('tr');
+      tr.dataset.id = bm.id;
+      if (state.selectedIds.has(bm.id)) tr.classList.add('selected');
+      tr.innerHTML = `
+        <td><input type="checkbox" ${state.selectedIds.has(bm.id) ? 'checked' : ''} data-action="check"></td>
         <td class="table-favicon">${favicon}</td>
-        <td><span class="table-title" data-action="focus" title="${bm.url}">${bm.title}</span></td>
+        <td><span class="table-title" data-action="focus" title="${bm.url}">${bm.title || bm.url}</span></td>
         <td class="table-tags">${tags}</td>
         <td class="table-date">${date}</td>
-        ${visitsCol}
-        <td><div class="table-actions">${actions}
-          <button class="icon-btn icon-btn-sm" data-action="menu" title="More">⋯</button>
-        </div></td>
-      </tr>`;
-    }
+        ${visitsCell}
+        <td><div class="table-actions">${actions}<button class="icon-btn icon-btn-sm" data-action="menu" title="More">⋯</button></div></td>`;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
 
-    const rows = filtered.map(bm => rowHTML(bm));
+    scrollEl.appendChild(table);
+    wrapper.appendChild(scrollEl);
+    container.appendChild(wrapper);
+    lucide.createIcons({ nodes: [wrapper] });
 
-    // Use Clusterize for large lists, plain render for small
-    let clusterize = null;
-    const scrollEl = document.createElement('div');
-    scrollEl.id = 'clusterize-scroll';
-    scrollEl.style.cssText = 'overflow-y:auto;flex:1;min-height:0';
-    const innerTable = document.createElement('table');
-    innerTable.className = 'bookmark-table';
-    innerTable.appendChild(tbody);
-    scrollEl.appendChild(innerTable);
-
-    if (window.Clusterize && filtered.length > 50) {
-      tableWrapper.appendChild(scrollEl);
-      wrapper.appendChild(tableWrapper);
-      container.appendChild(wrapper);
-      requestAnimationFrame(() => {
-        clusterize = new Clusterize({
-          rows,
-          scrollId: 'clusterize-scroll',
-          contentId: 'clusterize-content',
-          rows_in_block: 20,
-          blocks_in_cluster: 4,
-        });
-      });
-    } else {
-      tbody.innerHTML = rows.join('');
-      table.appendChild(tbody);
-      tableWrapper.appendChild(table);
-      wrapper.appendChild(tableWrapper);
-      container.appendChild(wrapper);
-    }
-
-    // Event delegation — always on tableWrapper (in DOM in both paths)
-    tableWrapper.addEventListener('click', (e) => {
+    // ── Event delegation ──
+    scrollEl.addEventListener('click', (e) => {
       const tr = e.target.closest('tr[data-id]');
       if (!tr) return;
       const bmId = tr.dataset.id;
       const action = e.target.closest('[data-action]')?.dataset.action;
       const bm = DB.getBookmarkById(bmId);
       if (!bm) return;
-      if (action === 'focus') { Components.FocusModal(bmId); return; }
-      if (action === 'open') { e.stopPropagation(); window.open(bm.url, '_blank'); DB.incrementVisit(bmId); return; }
-      if (action === 'edit') { e.stopPropagation(); Components.BookmarkFormModal(bm); return; }
+      if (action === 'focus')   { Components.FocusModal(bmId); return; }
+      if (action === 'open')    { e.stopPropagation(); window.open(bm.url, '_blank'); DB.incrementVisit(bmId); return; }
+      if (action === 'edit')    { e.stopPropagation(); Components.BookmarkFormModal(bm); return; }
       if (action === 'restore') { e.stopPropagation(); promptRestoreFromCatalog(bmId); return; }
-      if (action === 'menu') { e.stopPropagation(); showBookmarkContextMenu(bmId, e.clientX, e.clientY); return; }
+      if (action === 'menu')    { e.stopPropagation(); showBookmarkContextMenu(bmId, e.clientX, e.clientY); return; }
+      if (action === 'filter-tag') { state.listTagFilter = e.target.dataset.tag; renderContent(); return; }
       if (action === 'check') {
         e.stopPropagation();
-        const chk = e.target;
-        if (chk.checked) state.selectedIds.add(bmId); else state.selectedIds.delete(bmId);
-        tr.classList.toggle('selected', chk.checked);
+        if (e.target.checked) state.selectedIds.add(bmId); else state.selectedIds.delete(bmId);
+        tr.classList.toggle('selected', e.target.checked);
         Components.BulkActionsBar(state.selectedIds);
-        return;
-      }
-      if (action === 'filter-tag') {
-        state.listTagFilter = e.target.dataset.tag;
-        renderContent();
         return;
       }
     });
@@ -749,7 +830,6 @@ window.App = (() => {
   async function runTool(mode, wrapper) {
     state.toolsMode = mode;
     state.toolsResults = null;
-    state.toolsRunning = true;
 
     const area = wrapper.querySelector('#tools-results-area');
     wrapper.querySelectorAll('.tool-card').forEach(c => c.classList.toggle('active', c.dataset.tool === mode));
@@ -761,7 +841,7 @@ window.App = (() => {
           <div class="tool-progress-label" id="tool-progress-label">Checking 0 / ${total}...</div>
           <div class="tool-progress-bar"><div class="tool-progress-fill" id="tool-progress-fill" style="width:0%"></div></div>
           <div class="tool-progress-current" id="tool-progress-current"></div>
-          <div style="font-size:11px;color:var(--text-3);margin-top:8px">Checking via allorigins.win proxy · 404 and 5xx = dead · timeout = unreachable</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:8px">Checking via proxy · 404 and 5xx = dead · timeout = unreachable</div>
         </div>`;
 
       try {
@@ -775,7 +855,6 @@ window.App = (() => {
           if (current) current.textContent = title;
         });
         state.toolsResults = results;
-        state.toolsRunning = false;
         renderToolResults(area, mode, results);
       } catch(e) {
         area.innerHTML = `<div class="empty-state"><div class="empty-state-title">Error checking links</div><div class="empty-state-sub">${e.message}</div></div>`;
@@ -790,7 +869,6 @@ window.App = (() => {
         else if (mode === 'rare') results = DB.findRarelyVisited();
 
         state.toolsResults = results;
-        state.toolsRunning = false;
         renderToolResults(area, mode, results);
       } catch(e) {
         area.innerHTML = `<div class="empty-state"><div class="empty-state-title">Error running tool</div></div>`;
@@ -961,13 +1039,17 @@ window.App = (() => {
         <h3>Export</h3>
         <div class="settings-row">
           <div><div class="settings-label">Export All Bookmarks</div><div class="settings-desc">Download as JSON file</div></div>
-          <button class="btn btn-ghost btn-sm" id="export-all"><i data-lucide="download"></i> Export All</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" id="export-all"><i data-lucide="download"></i> JSON</button>
+            <button class="btn btn-ghost btn-sm" id="export-all-xlsx"><i data-lucide="table-2"></i> XLSX</button>
+          </div>
         </div>
         <div class="settings-row">
           <div><div class="settings-label">Export Workspace</div><div class="settings-desc">Export a specific workspace</div></div>
           <div style="display:flex;gap:8px">
             <select class="form-select" id="export-tab-sel" style="padding:5px 8px;font-size:12px">${tabOpts}</select>
-            <button class="btn btn-ghost btn-sm" id="export-tab"><i data-lucide="download"></i> Export</button>
+            <button class="btn btn-ghost btn-sm" id="export-tab"><i data-lucide="download"></i> JSON</button>
+            <button class="btn btn-ghost btn-sm" id="export-tab-xlsx"><i data-lucide="table-2"></i> XLSX</button>
           </div>
         </div>
       </div>
@@ -990,7 +1072,6 @@ window.App = (() => {
     wrapper.querySelectorAll('.layout-btn-s').forEach(btn => {
       btn.onclick = () => {
         DB.setColumns(parseInt(btn.dataset.cols));
-        renderSettings(container);
         container.innerHTML = '';
         renderSettings(container);
         lucide.createIcons({ nodes: [container] });
@@ -998,10 +1079,16 @@ window.App = (() => {
     });
 
     wrapper.querySelector('#export-all').onclick = () => { DB.exportJSON(); toast('Exported!', 'success'); };
+    wrapper.querySelector('#export-all-xlsx').onclick = () => { DB.exportXLSX(); toast('Exported as XLSX!', 'success'); };
     wrapper.querySelector('#export-tab').onclick = () => {
       const tabId = wrapper.querySelector('#export-tab-sel').value;
       DB.exportTabJSON(tabId);
       toast('Exported!', 'success');
+    };
+    wrapper.querySelector('#export-tab-xlsx').onclick = () => {
+      const tabId = wrapper.querySelector('#export-tab-sel').value;
+      DB.exportTabXLSX(tabId);
+      toast('Exported as XLSX!', 'success');
     };
     wrapper.querySelector('#settings-import').onclick = () => Components.ImportModal();
     wrapper.querySelector('#reset-data').onclick = () => {
@@ -1015,8 +1102,9 @@ window.App = (() => {
     const themeLabel = wrapper.querySelector('#theme-current-label');
     const themeBtn = wrapper.querySelector('#theme-toggle-btn');
     const themes = [
-      { file: 'styles.css',       name: 'Default', icon: 'sun' },
-      { file: 'styles black.css', name: 'Black',   icon: 'moon' },
+      { file: 'styles.css',              name: 'Default',   icon: 'sun' },
+      { file: 'styles black.css',        name: 'Black',     icon: 'moon' },
+      { file: 'styles cyberpunk.css',    name: 'Cyberpunk', icon: 'zap' },
     ];
     function updateThemeUI() {
       const current = styleLink.getAttribute('href');
@@ -1051,71 +1139,39 @@ window.App = (() => {
   }
 
   // ── SEARCH ──
-  function attachSearch(input, results, clearBtn) {
+  function attachSearch(input, _results, clearBtn) {
     let debounceTimer = null;
-    let focusedIdx = -1;
 
     const updateClear = () => {
       if (clearBtn) clearBtn.classList.toggle('visible', input.value.length > 0);
     };
 
+    const clearSearch = () => {
+      input.value = '';
+      state.searchQuery = '';
+      updateClear();
+      renderContent();
+    };
+
+    // Debounced search handler
+    const handleInput = debounce(() => {
+      state.searchQuery = input.value.trim();
+      renderContent();
+    }, 200);
+
     input.addEventListener('input', () => {
       updateClear();
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        const q = input.value.trim();
-        if (!q || q.length < 2) { results.classList.add('hidden'); return; }
-        const found = DB.search(q);
-        if (!found.length) {
-          results.innerHTML = '<div class="search-results-empty">No results found</div>';
-          results.classList.remove('hidden');
-          return;
-        }
-        results.innerHTML = '';
-        focusedIdx = -1;
-        found.slice(0, 10).forEach(({ item, matchedFields }) => {
-          const row = document.createElement('div');
-          row.className = 'search-result-item';
-          const fav = document.createElement('span');
-          fav.className = 'sr-favicon';
-          fav.textContent = item.favicon || '🔗';
-          const title = document.createElement('span');
-          title.className = 'sr-title';
-          title.textContent = item.title;
-          const match = document.createElement('span');
-          match.className = 'sr-match';
-          match.textContent = matchedFields[0] || 'title';
-          row.appendChild(fav); row.appendChild(title); row.appendChild(match);
-          row.onclick = () => {
-            results.classList.add('hidden');
-            input.value = '';
-            updateClear();
-            Components.FocusModal(item.id);
-          };
-          results.appendChild(row);
-        });
-        results.classList.remove('hidden');
-      }, 150);
+      debounceTimer = setTimeout(handleInput, 200);
     });
 
     if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        input.value = '';
-        results.classList.add('hidden');
-        updateClear();
-        input.focus();
-      });
+      clearBtn.addEventListener('click', () => { clearSearch(); input.focus(); });
     }
 
     input.addEventListener('keydown', (e) => {
-      const items = results.querySelectorAll('.search-result-item');
-      if (e.key === 'ArrowDown') { e.preventDefault(); focusedIdx = Math.min(focusedIdx + 1, items.length - 1); items.forEach((r, i) => r.classList.toggle('focused', i === focusedIdx)); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIdx = Math.max(focusedIdx - 1, 0); items.forEach((r, i) => r.classList.toggle('focused', i === focusedIdx)); }
-      else if (e.key === 'Enter' && focusedIdx >= 0) { items[focusedIdx]?.click(); }
-      else if (e.key === 'Escape') { results.classList.add('hidden'); input.value = ''; updateClear(); input.blur(); }
+      if (e.key === 'Escape') { clearSearch(); input.blur(); }
     });
-
-    document.addEventListener('click', (e) => { if (!e.target.closest('.search-wrapper')) results.classList.add('hidden'); });
   }
 
   function initSearch() {
@@ -1852,29 +1908,7 @@ window.App = (() => {
       // Fetch title + description + tags in parallel
       const canFetch = location.protocol !== 'file:';
 
-      async function fetchPageHTML(targetUrl) {
-        const proxies = [
-          u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-          u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-          u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-        ];
-        for (const proxy of proxies) {
-          try {
-            const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
-            if (!res.ok) continue;
-            const ct = res.headers.get('content-type') || '';
-            if (ct.includes('json')) {
-              const j = await res.json();
-              const html = j.contents || j.data || '';
-              if (html.length > 200) return html;
-            } else {
-              const html = await res.text();
-              if (html.length > 200) return html;
-            }
-          } catch { continue; }
-        }
-        return '';
-      }
+      const fetchPageHTML = Components.fetchPageHTML;
 
       Promise.all([
         canFetch
@@ -1990,6 +2024,7 @@ window.App = (() => {
     renderTopbar,
     init,
   };
+
 })();
 
 // Bootstrap

@@ -11,7 +11,7 @@
 <body>
 <script>
   // Restore theme before first render to avoid flash
-  const validThemes = ['styles.css', 'styles black.css'];
+  const validThemes = ['styles.css', 'styles black.css', 'styles cyberpunk.css'];
   const savedTheme = localStorage.getItem('bm_theme');
   if (savedTheme && validThemes.includes(savedTheme)) {
     document.getElementById('main-stylesheet').setAttribute('href', savedTheme);
@@ -120,17 +120,25 @@
   <div id="context-menu" class="context-menu" style="display:none"></div>
   <div id="cmd-palette-overlay" class="cmd-palette-overlay hidden"></div>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/motion@10.18.0/dist/motion.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/clusterize.js@0.19.0/clusterize.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/clusterize.js@0.19.0/clusterize.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
-  <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <!-- Security & Type Definitions (must load first) -->
+  <script src="types.js"></script>
+  <script src="security.js"></script>
+  
+  <!-- External Libraries -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/motion@10.18.0/dist/motion.umd.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clusterize.js@0.19.0/clusterize.min.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/clusterize.js@0.19.0/clusterize.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Application Scripts (load order matters) -->
   <script src="schemes.js"></script>
   <script src="data.js"></script>
   <script src="components.js"></script>
