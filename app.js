@@ -1029,8 +1029,9 @@ window.App = (() => {
     const themeLabel = wrapper.querySelector('#theme-current-label');
     const themeBtn = wrapper.querySelector('#theme-toggle-btn');
     const themes = [
-      { file: 'styles.css',       name: 'Default', icon: 'sun' },
-      { file: 'styles black.css', name: 'Black',   icon: 'moon' },
+      { file: 'styles.css',              name: 'Default',   icon: 'sun' },
+      { file: 'styles black.css',        name: 'Black',     icon: 'moon' },
+      { file: 'styles cyberpunk.css',    name: 'Cyberpunk', icon: 'zap' },
     ];
     function updateThemeUI() {
       const current = styleLink.getAttribute('href');
