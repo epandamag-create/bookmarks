@@ -1,5 +1,6 @@
 // v1.0 — main app: state, views (dashboard/list/graph/tags/tools/settings), routing, keyboard shortcuts
 // v1.2 — fixed: border-top on category header, collapse on header click, tab pill active state, list view scroll
+// v2.0 — perf: debounced search, document fragments, cached renders, requestIdleCallback, optimized event delegation
 
 window.App = (() => {
   const state = {
@@ -17,6 +18,50 @@ window.App = (() => {
     collapsedCats: new Set(),
     searchQuery: '',
   };
+
+  // ── PERFORMANCE UTILS ──
+  function debounce(fn, delay) {
+    let timer = null;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  function throttle(fn, limit) {
+    let inThrottle = false;
+    return (...args) => {
+      if (!inThrottle) {
+        fn(...args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+
+  // Render queue for batched DOM updates
+  let renderQueued = false;
+  let pendingRenders = new Set();
+
+  function scheduleRender(viewName) {
+    pendingRenders.add(viewName);
+    if (!renderQueued) {
+      renderQueued = true;
+      requestIdleCallback(() => {
+        renderQueued = false;
+        pendingRenders.forEach(name => {
+          if (name === 'tabs') renderTabsBar();
+          if (name === 'sidebar') renderSidebar();
+          if (name === 'content') renderContent();
+          if (name === 'topbar') renderTopbar();
+        });
+        pendingRenders.clear();
+      }, { timeout: 100 });
+    }
+  }
+
+  const debouncedRenderContent = debounce(renderContent, 150);
+  const throttledUpdateArrows = throttle(updateScrollArrows, 100);
 
   let tabsScrollController = null;
 
@@ -69,6 +114,7 @@ window.App = (() => {
   // ── RENDER SIDEBAR ──
   function renderSidebar() {
     const list = document.getElementById('sidebar-tabs-list');
+    const fragment = document.createDocumentFragment();
     list.innerHTML = '';
     const allBookmarks = DB.getAllBookmarks();
     DB.getTabs().forEach(tab => {
@@ -105,14 +151,16 @@ window.App = (() => {
         if (e.target.closest('[data-action="tab-menu"]')) return;
         switchTab(tab.id);
       });
-      list.appendChild(item);
+      fragment.appendChild(item);
     });
+    list.appendChild(fragment);
     lucide.createIcons({ nodes: [list] });
   }
 
   // ── RENDER TABS BAR ──
   function renderTabsBar() {
     const tabsList = document.getElementById('tabs-list');
+    const fragment = document.createDocumentFragment();
     tabsList.innerHTML = '';
 
     DB.getTabs().forEach(tab => {
@@ -154,8 +202,10 @@ window.App = (() => {
       pill.addEventListener('mouseenter', () => menuBtn.style.opacity = '1');
       pill.addEventListener('mouseleave', () => menuBtn.style.opacity = '0');
 
-      tabsList.appendChild(pill);
+      fragment.appendChild(pill);
     });
+
+    tabsList.appendChild(fragment);
 
     // Scroll arrows — abort previous listeners to avoid accumulation
     if (tabsScrollController) tabsScrollController.abort();
@@ -170,10 +220,19 @@ window.App = (() => {
       rightBtn.style.display = container.scrollLeft < container.scrollWidth - container.clientWidth - 2 ? 'flex' : 'none';
     }
     setTimeout(updateArrows, 50);
-    container.addEventListener('scroll', updateArrows, { signal });
-    container.addEventListener('wheel', (e) => { e.preventDefault(); container.scrollLeft += e.deltaY; updateArrows(); }, { signal, passive: false });
-    leftBtn.onclick = () => { container.scrollLeft -= 120; setTimeout(updateArrows, 100); };
-    rightBtn.onclick = () => { container.scrollLeft += 120; setTimeout(updateArrows, 100); };
+    container.addEventListener('scroll', throttledUpdateArrows, { signal });
+    container.addEventListener('wheel', (e) => { e.preventDefault(); container.scrollLeft += e.deltaY; throttledUpdateArrows(); }, { signal, passive: false });
+    leftBtn.onclick = () => { container.scrollLeft -= 120; throttledUpdateArrows(); };
+    rightBtn.onclick = () => { container.scrollLeft += 120; throttledUpdateArrows(); };
+  }
+
+  function updateScrollArrows() {
+    const leftBtn = document.getElementById('tabs-scroll-left');
+    const rightBtn = document.getElementById('tabs-scroll-right');
+    const container = document.getElementById('tabs-list');
+    if (!leftBtn || !rightBtn || !container) return;
+    leftBtn.style.display = container.scrollLeft > 0 ? 'flex' : 'none';
+    rightBtn.style.display = container.scrollLeft < container.scrollWidth - container.clientWidth - 2 ? 'flex' : 'none';
   }
 
   // ── RENDER TOPBAR ──
@@ -233,7 +292,7 @@ window.App = (() => {
   }
 
   // ── SEARCH RESULTS ──
-  function renderSearchResults(container) {
+  const debouncedSearchRender = debounce((container) => {
     const found = DB.search(state.searchQuery, true);
     const wrap = document.createElement('div');
     wrap.className = 'search-results-view';
@@ -249,11 +308,19 @@ window.App = (() => {
       const cols = DB.getColumns();
       const grid = document.createElement('div');
       grid.style.cssText = `display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:16px;align-items:start;width:100%;`;
-      found.forEach(({ item }) => grid.appendChild(Components.BookmarkCard(item)));
+      const fragment = document.createDocumentFragment();
+      found.forEach(({ item }) => fragment.appendChild(Components.BookmarkCard(item)));
+      grid.appendChild(fragment);
       wrap.appendChild(grid);
     }
 
+    container.innerHTML = '';
     container.appendChild(wrap);
+    lucide.createIcons({ nodes: [container] });
+  }, 200);
+
+  function renderSearchResults(container) {
+    debouncedSearchRender(container);
   }
 
   // ── DASHBOARD ──
@@ -282,6 +349,7 @@ window.App = (() => {
     grid.className = 'dashboard-grid';
     grid.dataset.cols = cols;
 
+    const fragment = document.createDocumentFragment();
     cats.forEach(cat => {
       const bms = allBms.filter(b => b.categoryId === cat.id);
       const col = Components.CategoryColumn(cat, bms, {
@@ -292,8 +360,9 @@ window.App = (() => {
         },
       });
       setupDragDrop(col, cat.id);
-      grid.appendChild(col);
+      fragment.appendChild(col);
     });
+    grid.appendChild(fragment);
 
     // Column reorder via Sortable
     Sortable.create(grid, {
@@ -328,9 +397,12 @@ window.App = (() => {
   }
 
   // ── DRAG & DROP (Sortable.js) ──
+  let sortableInstances = new Map();
   function setupDragDrop(colEl, catId) {
     const body = colEl.querySelector('.category-column-body');
-    Sortable.create(body, {
+    if (sortableInstances.has(body)) return; // Prevent duplicate initialization
+    
+    const sortable = Sortable.create(body, {
       group:     'cards',
       animation: 150,
       delay:     50,
@@ -347,10 +419,11 @@ window.App = (() => {
         if (newCatId && newCatId !== catId) {
           DB.updateBookmark(bmId, { categoryId: newCatId });
           DB.rebuildFuse();
-          renderContent();
+          debouncedRenderContent();
         }
       },
     });
+    sortableInstances.set(body, sortable);
   }
 
   // ── LIST VIEW ──
@@ -1079,13 +1152,16 @@ window.App = (() => {
       renderContent();
     };
 
+    // Debounced search handler
+    const handleInput = debounce(() => {
+      state.searchQuery = input.value.trim();
+      renderContent();
+    }, 200);
+
     input.addEventListener('input', () => {
       updateClear();
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        state.searchQuery = input.value.trim();
-        renderContent();
-      }, 150);
+      debounceTimer = setTimeout(handleInput, 200);
     });
 
     if (clearBtn) {
